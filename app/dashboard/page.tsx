@@ -95,12 +95,9 @@ export default function DashboardPage() {
             {/* Context Card - Spans 2 columns */}
             <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
               <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">context</h2>
-              <p className="text-sm font-mono tracking-tight text-zinc-300 lowercase leading-relaxed">
-                i'm a visual artist working primarily in digital media and installation. my practice explores themes of
-                memory, identity, and technology. currently developing work for a group exhibition in spring 2025 while
-                building relationships with local galleries. i'm focused on creating a sustainable creative practice
-                that balances artistic integrity with financial stability.
-              </p>
+              <div className="flex items-center justify-center min-h-[120px]">
+                <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase italic">no context added</p>
+              </div>
             </div>
 
             {/* Next Actions Card */}
