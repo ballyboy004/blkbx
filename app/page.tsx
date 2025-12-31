@@ -1,78 +1,65 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const supabase = createClient()
+  const searchParams = useSearchParams();
+  const supabase = createClient();
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState<"signin" | "signup" | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  async function onSignIn(e: React.FormEvent) {
-    e.preventDefault()
-    setMessage(null)
-    setLoading("signin")
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
+  // middleware sends you here as: /?redirectTo=%2Fonboarding (or %2Fdashboard)
+  const redirectTo = useMemo(() => {
+    const rt = searchParams.get("redirectTo");
+    if (!rt) return "/dashboard";
+    if (!rt.startsWith("/")) return "/dashboard";
+    if (rt.startsWith("/auth")) return "/dashboard";
+    return rt;
+  }, [searchParams]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (loading) return;
+
+    setMessage(null);
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
       password,
-    })
+    });
 
-    setLoading(null)
+    setLoading(false);
 
     if (error) {
-      setMessage(error.message)
-      return
+      setMessage(error.message);
+      return;
     }
 
-    // hard redirect helps session/middleware sync immediately
-    window.location.href = "/onboarding/context"
-  }
-
-  async function onSignUp(e: React.MouseEvent) {
-    e.preventDefault()
-    setMessage(null)
-    setLoading("signup")
-
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/onboarding/context`,
-      },
-    })
-
-    setLoading(null)
-
-    if (error) {
-      setMessage(error.message)
-      return
-    }
-
-    // If confirm email is ON in Supabase, session will often be null until they confirm.
+    // If confirmations are on, session can be null.
     if (!data.session) {
-      setMessage("account created. check your email to confirm, then log in.")
-      return
+      setMessage("check your email to confirm your account, then log in.");
+      return;
     }
 
-    window.location.href = "/onboarding/context"
+    // ✅ Hard nav so the next request goes through middleware with fresh auth state
+    window.location.assign(redirectTo);
   }
-
-  console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
 
   return (
     <div className="relative min-h-screen w-full bg-black overflow-hidden">
       {/* 3D Void Vignette Effect */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Layered radial gradients for depth */}
         <div
           className="absolute inset-0"
           style={{
@@ -81,13 +68,13 @@ export default function LoginPage() {
           }}
         />
         <div
-  className="absolute inset-0"
-  style={{
-    background:
-      "radial-gradient(ellipse 60% 50% at center, rgba(40,40,40,0.2) 0%, transparent 60%)",
-    boxShadow: "inset 0 0 200px 100px rgba(0,0,0,0.9)",
-  }}
-/>
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at center, rgba(40,40,40,0.2) 0%, transparent 60%)",
+            boxShadow: "inset 0 0 200px 100px rgba(0,0,0,0.9)",
+          }}
+        />
       </div>
 
       {/* Centered Content */}
@@ -104,7 +91,7 @@ export default function LoginPage() {
           </div>
 
           {/* Login Form */}
-          <form className="space-y-4" onSubmit={onSignIn}>
+          <form className="space-y-4" onSubmit={onSubmit}>
             <Input
               type="email"
               placeholder="email"
@@ -122,38 +109,42 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="h-11 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono tracking-tight lowercase"
               required
+              minLength={6}
               autoComplete="current-password"
             />
 
             <Button
               type="submit"
               variant="outline"
-              disabled={loading !== null}
-              className="w-full h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight lowercase"
+              disabled={loading}
+              className="w-full h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight lowercase disabled:opacity-60"
             >
-              {loading === "signin" ? "entering." : "enter."}
+              {loading ? "entering…" : "enter."}
             </Button>
 
-            {message ? (
-              <p className="text-xs text-zinc-600 font-mono tracking-tight lowercase text-center">
+            {message && (
+              <p className="text-xs font-mono tracking-tight text-zinc-500 lowercase">
                 {message}
               </p>
-            ) : null}
+            )}
           </form>
 
           {/* Create Account Link */}
           <div className="text-center">
-            {/* visually identical: still a Link component + same classes */}
             <Link
               href="/signup"
-              onClick={onSignUp}
               className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors font-mono tracking-tight lowercase"
             >
-              {loading === "signup" ? "creating account..." : "create account"}
+              create account
             </Link>
           </div>
+
+          {/* tiny debug line */}
+          <p className="text-[10px] text-center font-mono text-zinc-700 lowercase">
+            redirecting to: {redirectTo}
+          </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
