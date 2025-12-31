@@ -12,7 +12,7 @@ const _ibmPlexSans = IBM_Plex_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "BLACKBOX - Career Intelligence",
+  title: "BLACKBOX - Creative Intelligence",
   description: "Enter the void",
   generator: "v0.app",
   icons: {
