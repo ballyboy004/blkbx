@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function OnboardingPreferencesPage() {
@@ -119,21 +118,18 @@ export default function OnboardingPreferencesPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-11 px-6 text-zinc-600 hover:text-zinc-400 hover:bg-transparent font-mono text-sm tracking-tight lowercase"
-                asChild
+              <Link
+                href="/onboarding/context"
+                className="h-11 px-6 text-zinc-600 hover:text-zinc-400 font-mono text-sm tracking-tight lowercase flex items-center justify-center transition-colors"
               >
-                <Link href="/onboarding/context">back</Link>
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight uppercase"
+                back
+              </Link>
+              <Link
+                href="/onboarding/complete"
+                className="flex-1 h-11 bg-transparent border border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight uppercase flex items-center justify-center rounded"
               >
                 CONTINUE
-              </Button>
+              </Link>
             </div>
           </div>
 
