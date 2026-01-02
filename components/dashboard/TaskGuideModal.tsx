@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
 
 type TaskGuideModalProps = {
@@ -31,8 +32,8 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
         </p>
       </button>
 
-      {/* Modal overlay */}
-      {isOpen && (
+      {/* Modal overlay - rendered via portal to escape parent stacking context */}
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => setIsOpen(false)}
@@ -131,7 +132,8 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
