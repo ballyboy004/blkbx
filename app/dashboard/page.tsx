@@ -1,33 +1,43 @@
-
 import Link from "next/link";
 import type { Profile } from "@/lib/profile/profile";
 import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
+import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
+import CollapsibleSection from "@/components/dashboard/CollapsibleSection";
+import TodayCard from "@/components/dashboard/TodayCard";
 
 export default async function DashboardPage() {
-  // 1) must be logged in
+  // Server-side data loading
   const { user } = await getAuthedUserOrRedirect("/");
+  if (!user) return null;
 
-// ✅ TS guard (helper redirects, but TS doesn't know that)
-if (!user) return null;
-
-const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
+  const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
+  const intelligence = await getCompleteDashboardIntelligence(user.id, profile);
 
   return (
-    <div className="relative min-h-screen w-full bg-black overflow-hidden">
+    <div 
+      className="relative min-h-screen w-full overflow-hidden"
+      style={{
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(30, 40, 60, 0.6) 0%, transparent 50%),
+          radial-gradient(circle at 80% 70%, rgba(40, 30, 50, 0.5) 0%, transparent 50%),
+          #0a0a0a
+        `
+      }}
+    >
       {/* 3D Void Vignette Effect */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(30,30,30,0.4) 0%, rgba(0,0,0,0.8) 50%, #000 100%)",
+              "radial-gradient(ellipse at center, rgba(30,30,30,0.2) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(ellipse 60% 50% at center, rgba(40,40,40,0.2) 0%, transparent 60%)",
-            boxShadow: "inset 0 0 200px 100px rgba(0,0,0,0.9)",
+            background: "radial-gradient(ellipse 60% 50% at center, rgba(40,40,40,0.1) 0%, transparent 60%)",
+            boxShadow: "inset 0 0 150px 80px rgba(0,0,0,0.5)",
           }}
         />
       </div>
@@ -46,7 +56,7 @@ const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
               <p className="text-xs lowercase tracking-tight font-mono text-zinc-500">dashboard</p>
             </div>
 
-            {/* REAL sign out */}
+            {/* Sign out */}
             <form action="/auth/signout" method="post">
               <button className="text-xs lowercase tracking-tight font-mono text-zinc-600 hover:text-zinc-400 transition-colors mt-2">
                 sign out
@@ -54,71 +64,188 @@ const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
             </form>
           </header>
 
+          {/* CURRENT READ - HERO SECTION */}
+          <div 
+            className="p-10 mb-20 space-y-4"
+            style={{
+              background: 'rgba(26, 26, 26, 0.4)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '4px',
+              boxShadow: '0 18px 36px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500">
+                current read
+              </h2>
+              {intelligence.source === 'cache' && (
+                <span className="bg-white/10 border border-white/20 px-3 py-1 rounded-[2px] font-mono text-[9px] font-medium tracking-[0.2em] uppercase text-white">
+                  cached
+                </span>
+              )}
+              {intelligence.source === 'generated' && (
+                <span className="bg-white/10 border border-white/20 px-3 py-1 rounded-[2px] font-mono text-[9px] font-medium tracking-[0.2em] uppercase text-white">
+                  fresh
+                </span>
+              )}
+            </div>
+            <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+              {intelligence.currentRead}
+            </p>
+          </div>
+
           {/* Dashboard Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Profile Snapshot Card */}
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
-              <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">profile snapshot</h2>
-              <div className="space-y-3">
-                <Field label="primary goal" value={profile.primary_goal} />
-                <Field label="career stage" value={profile.career_stage} />
-                <Field label="current focus" value={profile.current_focus} />
+            {/* PROFILE CARD */}
+            <div 
+              className="p-8 space-y-4"
+              style={{
+                background: 'rgba(26, 26, 26, 0.4)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '4px',
+                boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500">
+                  profile
+                </h2>
+                <button
+                  className="bg-transparent border px-3 py-1.5 rounded-[2px] font-mono text-[10px] font-medium uppercase transition-all duration-[120ms] hover:bg-white/5 hover:translate-y-[-1px]"
+                  style={{
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    letterSpacing: '0.15em'
+                  }}
+                >
+                  EDIT
+                </button>
               </div>
-            </div>
-
-            {/* Your Patterns Card */}
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
-              <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">your patterns</h2>
-              <div className="space-y-3">
-                <Field label="strengths" value={profile.strengths} />
-                <Field label="weaknesses" value={profile.weaknesses} />
-                <Field label="constraints" value={profile.constraints} />
-              </div>
-            </div>
-
-            {/* Today Card */}
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
-              <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">today</h2>
-              <div className="flex items-center justify-center min-h-[120px]">
-                <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase italic">no items yet</p>
-              </div>
-            </div>
-
-            {/* Context Card - Spans 2 columns */}
-            <div className="md:col-span-2 bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
-              <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">context</h2>
-              <div className="min-h-[120px]">
-                {profile.context ? (
-                  <p className="text-sm font-mono tracking-tight text-zinc-300 lowercase leading-relaxed whitespace-pre-wrap">
-                    {profile.context}
+              <div className="space-y-6">
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    identity
+                  </span>
+                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                    {intelligence.identitySummary || "—"}
                   </p>
-                ) : (
-                  <div className="flex items-center justify-center min-h-[120px]">
-                    <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase italic">no context added</p>
-                  </div>
-                )}
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    primary goal
+                  </span>
+                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                    {profile.primary_goal || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    career stage
+                  </span>
+                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                    {profile.career_stage || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    current focus
+                  </span>
+                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                    {profile.current_focus || "—"}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Next Actions Card */}
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 space-y-4">
-              <h2 className="text-lg font-inter font-black tracking-tight text-white lowercase">next actions</h2>
-              <div className="flex items-center justify-center min-h-[120px]">
-                <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase italic">no actions yet</p>
+            {/* YOUR PATTERNS CARD */}
+            <div 
+              className="p-8 space-y-4"
+              style={{
+                background: 'rgba(26, 26, 26, 0.4)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '4px',
+                boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500 mb-6">
+                your patterns
+              </h2>
+              <div className="space-y-6">
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    edge
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {intelligence.edge || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    friction
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {intelligence.friction || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    constraint
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {intelligence.constraint || "—"}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {/* TODAY CARD - No transform wrapper, modal can escape */}
+            <TodayCard task={intelligence.priorityTask} />
+
+            {/* CONTEXT NOTES - COLLAPSIBLE */}
+            <div className="md:col-span-2">
+              <CollapsibleSection title="context notes">
+                {intelligence.strategicContext?.length ? (
+                  <ul className="space-y-3">
+                    {intelligence.strategicContext.map((b: string, i: number) => (
+                      <li key={i} className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                        • {b}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="font-mono text-[12px] font-light tracking-[0.05em] uppercase text-zinc-400 italic">
+                    —
+                  </p>
+                )}
+              </CollapsibleSection>
+            </div>
+
+            {/* NEXT ACTIONS - COLLAPSIBLE */}
+            <CollapsibleSection title="next actions">
+              {intelligence.nextActions?.length ? (
+                <div className="space-y-3">
+                  {intelligence.nextActions.map((action: string, i: number) => (
+                    <p key={i} className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                      • {action}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-mono text-[12px] font-light tracking-[0.05em] uppercase text-zinc-400 italic">
+                  —
+                </p>
+              )}
+            </CollapsibleSection>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs font-mono tracking-tight text-zinc-500 lowercase">{label}</p>
-      <p className="text-sm font-mono tracking-tight text-zinc-300 lowercase">{value || "—"}</p>
     </div>
   );
 }
