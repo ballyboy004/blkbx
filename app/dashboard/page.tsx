@@ -3,7 +3,6 @@ import type { Profile } from "@/lib/profile/profile";
 import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
 import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection";
-import TodayCard from "@/components/dashboard/TodayCard";
 
 export default async function DashboardPage() {
   // Server-side data loading
@@ -64,9 +63,9 @@ export default async function DashboardPage() {
             </form>
           </header>
 
-          {/* CURRENT READ - HERO SECTION */}
+          {/* CURRENT READ - HERO SECTION WITH BREAKDOWN */}
           <div 
-            className="p-10 mb-20 space-y-4"
+            className="p-10 mb-20 space-y-6"
             style={{
               background: 'rgba(26, 26, 26, 0.4)',
               backdropFilter: 'blur(24px) saturate(180%)',
@@ -79,25 +78,100 @@ export default async function DashboardPage() {
               <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500">
                 current read
               </h2>
-              {intelligence.source === 'cache' && (
-                <span className="bg-white/10 border border-white/20 px-3 py-1 rounded-[2px] font-mono text-[9px] font-medium tracking-[0.2em] uppercase text-white">
-                  cached
-                </span>
-              )}
-              {intelligence.source === 'generated' && (
-                <span className="bg-white/10 border border-white/20 px-3 py-1 rounded-[2px] font-mono text-[9px] font-medium tracking-[0.2em] uppercase text-white">
-                  fresh
-                </span>
-              )}
+              <button
+                className="bg-transparent border px-3 py-1.5 rounded-[2px] font-mono text-[10px] font-medium uppercase transition-all duration-[120ms] hover:bg-white/5"
+                style={{
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                  letterSpacing: '0.15em'
+                }}
+              >
+                FRESH
+              </button>
             </div>
+            
             <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
               {intelligence.currentRead}
             </p>
+
+            {/* Focus / Constraint / Priority Breakdown */}
+            <div className="grid grid-cols-3 gap-8 pt-4">
+              <div>
+                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 mb-2">
+                  focus
+                </h3>
+                <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                  {profile.current_focus || "—"}
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 mb-2">
+                  constraint
+                </h3>
+                <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                  {profile.constraints || "—"}
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 mb-2">
+                  priority
+                </h3>
+                <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+                  {intelligence.priorityTask?.title || "—"}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Dashboard Grid */}
+          {/* Dashboard Grid - REORDERED: YOUR PATTERNS → PROFILE → TODAY */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* PROFILE CARD */}
+            
+            {/* YOUR PATTERNS CARD - LEFT */}
+            <div 
+              className="p-8 space-y-4"
+              style={{
+                background: 'rgba(26, 26, 26, 0.4)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '4px',
+                boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500 mb-6">
+                your patterns
+              </h2>
+              <div className="space-y-6">
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    strengths
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {profile.strengths || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    growth areas
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {profile.weaknesses || "—"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
+                    constraints
+                  </span>
+                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
+                    {profile.constraints || "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* PROFILE CARD - MIDDLE */}
             <div 
               className="p-8 space-y-4"
               style={{
@@ -125,15 +199,6 @@ export default async function DashboardPage() {
               <div className="space-y-6">
                 <div>
                   <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
-                    identity
-                  </span>
-                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
-                    {intelligence.identitySummary || "—"}
-                  </p>
-                </div>
-                
-                <div>
-                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
                     primary goal
                   </span>
                   <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
@@ -149,19 +214,10 @@ export default async function DashboardPage() {
                     {profile.career_stage || "—"}
                   </p>
                 </div>
-                
-                <div>
-                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
-                    current focus
-                  </span>
-                  <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
-                    {profile.current_focus || "—"}
-                  </p>
-                </div>
               </div>
             </div>
 
-            {/* YOUR PATTERNS CARD */}
+            {/* TODAY CARD - RIGHT (EMPTY STATE) */}
             <div 
               className="p-8 space-y-4"
               style={{
@@ -172,43 +228,61 @@ export default async function DashboardPage() {
                 boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
               }}
             >
-              <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500 mb-6">
-                your patterns
-              </h2>
-              <div className="space-y-6">
-                <div>
-                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
-                    edge
-                  </span>
-                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
-                    {intelligence.edge || "—"}
-                  </p>
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="font-mono text-[12px] font-medium tracking-[0.2em] uppercase text-zinc-500">
+                  today
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    className="bg-transparent border px-2 py-1 rounded-[2px] font-mono text-[9px] font-medium uppercase"
+                    style={{
+                      borderColor: 'rgba(255, 255, 255, 0.15)',
+                      letterSpacing: '0.15em',
+                      color: 'rgba(255, 255, 255, 0.4)'
+                    }}
+                  >
+                    SKIP
+                  </button>
+                  <button
+                    className="bg-transparent border px-2 py-1 rounded-[2px] font-mono text-[9px] font-medium uppercase"
+                    style={{
+                      borderColor: 'rgba(255, 255, 255, 0.15)',
+                      letterSpacing: '0.15em',
+                      color: 'rgba(255, 255, 255, 0.4)'
+                    }}
+                  >
+                    WITH TASK
+                  </button>
                 </div>
+              </div>
+
+              {/* Empty State */}
+              <div className="space-y-4 py-8">
+                <p className="font-mono text-[12px] font-light tracking-[0.05em] uppercase text-zinc-500 italic text-center">
+                  no tasks yet
+                </p>
                 
-                <div>
-                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
-                    friction
-                  </span>
-                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
-                    {intelligence.friction || "—"}
-                  </p>
-                </div>
+                <p className="font-mono text-[11px] font-light tracking-[0.05em] uppercase leading-[1.6] text-zinc-400 text-center">
+                  tasks appear here when blackbox identifies strategic actions based on your patterns.
+                </p>
                 
-                <div>
-                  <span className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500 block mb-2">
-                    constraint
-                  </span>
-                  <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
-                    {intelligence.constraint || "—"}
-                  </p>
-                </div>
+                <p className="font-mono text-[10px] font-light tracking-[0.05em] uppercase text-zinc-600 text-center">
+                  → edit your profile to unlock tasks
+                </p>
+                
+                <button
+                  className="w-full mt-6 py-3 bg-transparent border font-mono text-[11px] font-medium uppercase transition-all duration-[120ms] hover:bg-white/5"
+                  style={{
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    letterSpacing: '0.15em'
+                  }}
+                >
+                  + add first task
+                </button>
               </div>
             </div>
 
-            {/* TODAY CARD - No transform wrapper, modal can escape */}
-            <TodayCard task={intelligence.priorityTask} />
-
-            {/* CONTEXT NOTES - COLLAPSIBLE */}
+            {/* CONTEXT NOTES - COLLAPSIBLE (SPANS 2 COLS) */}
             <div className="md:col-span-2">
               <CollapsibleSection title="context notes">
                 {intelligence.strategicContext?.length ? (
@@ -239,7 +313,9 @@ export default async function DashboardPage() {
                 </div>
               ) : (
                 <p className="font-mono text-[12px] font-light tracking-[0.05em] uppercase text-zinc-400 italic">
-                  —
+                  no actions scheduled
+                  <br /><br />
+                  actions appear as you complete tasks and build momentum. focus on today's priority first.
                 </p>
               )}
             </CollapsibleSection>
