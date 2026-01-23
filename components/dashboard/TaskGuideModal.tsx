@@ -6,13 +6,14 @@ import type { PriorityTask } from '@/lib/intelligence/interpret'
 
 type TaskGuideModalProps = {
   task: PriorityTask
+  isHero?: boolean
 }
 
 // Typography constants
 const bodyText = "font-mono text-[13px] font-normal tracking-normal leading-[1.7] text-zinc-300"
 const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
 
-export function TaskGuideModal({ task }: TaskGuideModalProps) {
+export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   // Safety check - if no guide, don't render interactive modal

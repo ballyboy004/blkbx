@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Profile } from "@/lib/profile/profile";
 import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
 import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
+import { getBehavioralHistory } from "@/lib/intelligence/history";
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection";
 import TodayCard from "@/components/dashboard/TodayCard";
 import FreshButton from "@/components/dashboard/FreshButton";
@@ -27,6 +28,16 @@ export default async function DashboardPage() {
 
   const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
   const intelligence = await getCompleteDashboardIntelligence(user.id, profile);
+  
+  // Fetch recent tasks for the TodayCard
+  const history = await getBehavioralHistory(user.id, { limit: 10 });
+  const recentTasks = history.recentTasks.map(t => ({
+    id: t.id,
+    title: t.title,
+    status: t.status,
+    created_at: t.completed_at,
+    reflection: t.reflection
+  }));
 
   const hasTask = intelligence.priorityTask?.title && intelligence.priorityTask.title !== "—";
 
@@ -83,7 +94,7 @@ export default async function DashboardPage() {
 
           {/* TODAY - HERO POSITION */}
           {hasTask ? (
-            <TodayCard task={intelligence.priorityTask} />
+            <TodayCard task={intelligence.priorityTask} recentTasks={recentTasks} />
           ) : (
             <div className="p-10" style={cardStyle}>
               <h2 className={`${headerStyle} mb-6`}>Today</h2>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { TaskGuideModal } from "@/components/dashboard/TaskGuideModal"
 import { completeTask, skipTask } from '@/app/dashboard/actions/tasks'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
@@ -14,12 +15,21 @@ const labelStyle = "font-mono text-[12px] font-bold tracking-[0.2em] uppercase t
 // Card headers
 const headerStyle = "font-mono text-[13px] font-bold tracking-[0.2em] uppercase text-zinc-500"
 
+type RecentTask = {
+  id: string
+  title: string
+  status: 'done' | 'skipped'
+  created_at: string
+  reflection?: string
+}
+
 interface TodayCardProps {
   task: PriorityTask
   isHero?: boolean
+  recentTasks?: RecentTask[]
 }
 
-export default function TodayCard({ task: initialTask, isHero = false }: TodayCardProps) {
+export default function TodayCard({ task: initialTask, isHero = false, recentTasks = [] }: TodayCardProps) {
   const [task, setTask] = useState<PriorityTask | null>(initialTask)
   const [isSkipping, setIsSkipping] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -29,6 +39,12 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
   const [showReflection, setShowReflection] = useState(false)
   const [reflection, setReflection] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Guide modal state for reflection page
+  const [showGuideModal, setShowGuideModal] = useState(false)
+  
+  // Recent tasks visibility
+  const [showRecentTasks, setShowRecentTasks] = useState(false)
   
   // Store last reflection to pass with refresh request
   const lastReflectionRef = useRef<string>('')
@@ -56,7 +72,6 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
     setFetchError(false)
     
     try {
-      // Pass reflection to help decide if prefetch should be used
       const url = withReflection 
         ? `/api/intelligence/refresh?reflection=${encodeURIComponent(withReflection)}`
         : '/api/intelligence/refresh'
@@ -71,7 +86,6 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
       
       if (data.success && data.task && data.task.title) {
         setTask(data.task)
-        // Log if we used prefetch
         if (data.source === 'prefetch') {
           console.log('[TodayCard] Used prefetched task - instant!')
         }
@@ -95,8 +109,6 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
   async function handleCompleteWithReflection() {
     if (isSubmitting || !task) return
     setIsSubmitting(true)
-    
-    // Store reflection for refresh request
     lastReflectionRef.current = reflection.trim()
 
     try {
@@ -135,8 +147,6 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
   async function handleSkipReflection() {
     if (isSubmitting || !task) return
     setIsSubmitting(true)
-    
-    // No reflection = can use prefetch
     lastReflectionRef.current = ''
 
     try {
@@ -154,7 +164,7 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
         
         setTimeout(async () => {
           setShowSuccess(false)
-          await fetchNewTask() // No reflection = use prefetch if available
+          await fetchNewTask()
         }, 1200)
       } else {
         console.error('[TodayCard] Complete failed:', result.error)
@@ -181,7 +191,7 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
 
       if (result.success) {
         setIsSkipping(false)
-        await fetchNewTask() // Skip = no reflection = use prefetch
+        await fetchNewTask()
       } else {
         console.error('[TodayCard] Skip failed:', result.error)
         alert('Failed to skip task. Please try again.')
@@ -202,26 +212,80 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
     boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
   }
 
-  // Dynamic styles based on hero mode
   const containerPadding = isHero ? "p-10" : "p-8"
   const titleStyle = headerStyle
   const heroBodyText = bodyText
   const heroLabelStyle = labelStyle
   const heroSpacing = "space-y-5"
 
-  // Error state - show retry button
+  // Guide Modal for reflection page
+  const GuideModal = () => {
+    if (!showGuideModal || !task?.guide) return null
+    
+    return typeof document !== 'undefined' ? createPortal(
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={() => setShowGuideModal(false)}
+      >
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        <div
+          className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between p-6 border-b border-zinc-800">
+            <h2 className="font-mono text-[14px] font-semibold text-white">{task.title}</h2>
+            <button onClick={() => setShowGuideModal(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="space-y-2">
+              <h3 className={labelStyle}>What You're Doing</h3>
+              <p className={bodyText}>{task.guide.what}</p>
+            </div>
+            <div className="space-y-3">
+              <h3 className={labelStyle}>How To Do It</h3>
+              <ol className="space-y-3">
+                {task.guide.how.map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold text-zinc-400">{i + 1}</span>
+                    <p className={`${bodyText} pt-0.5`}>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="space-y-2">
+              <h3 className={labelStyle}>Why This Works For You</h3>
+              <p className={bodyText}>{task.guide.why}</p>
+            </div>
+            <div className="pt-4 border-t border-zinc-800">
+              <div className="bg-zinc-800/50 border border-zinc-700 rounded p-4">
+                <span className={labelStyle}>Guardrail</span>
+                <p className={`${bodyText} text-zinc-400`}>{task.guardrail}</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 border-t border-zinc-800">
+            <button onClick={() => setShowGuideModal(false)} className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    ) : null
+  }
+
+  // Error state
   if (fetchError) {
     return (
       <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
         <h2 className={`${titleStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
-          <p className="font-mono text-[12px] text-zinc-400">
-            Could not generate task
-          </p>
-          <button
-            onClick={() => fetchNewTask()}
-            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors"
-          >
+          <p className="font-mono text-[12px] text-zinc-400">Could not generate task</p>
+          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors">
             Retry
           </button>
         </div>
@@ -236,9 +300,7 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
         <h2 className={`${titleStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-3">
           <p className="font-mono text-[14px] font-semibold text-white">✓ Done</p>
-          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-zinc-500">
-            Loading next task...
-          </p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-zinc-500">Loading next task...</p>
         </div>
       </div>
     )
@@ -250,9 +312,7 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
       <div className={`${containerPadding} space-y-4 transition-all duration-300`} style={cardStyle}>
         <h2 className={`${titleStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-3">
-          <p className="font-mono text-[12px] uppercase tracking-[0.15em] text-zinc-400 animate-pulse">
-            Thinking...
-          </p>
+          <p className="font-mono text-[12px] uppercase tracking-[0.15em] text-zinc-400 animate-pulse">Thinking...</p>
         </div>
       </div>
     )
@@ -264,13 +324,8 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
       <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
         <h2 className={`${titleStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
-          <p className="font-mono text-[12px] text-zinc-400">
-            No task available
-          </p>
-          <button
-            onClick={() => fetchNewTask()}
-            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors"
-          >
+          <p className="font-mono text-[12px] text-zinc-400">No task available</p>
+          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors">
             Generate Task
           </button>
         </div>
@@ -282,10 +337,22 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
   if (showReflection) {
     return (
       <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
+        <GuideModal />
         <h2 className={`${titleStyle} mb-6`}>Today</h2>
         
         <div className={heroSpacing}>
-          <p className="font-mono text-[14px] font-semibold text-white">✓ {task.title}</p>
+          {/* Task title with view guide link */}
+          <div className="flex items-start justify-between gap-4">
+            <p className="font-mono text-[14px] font-semibold text-white">✓ {task.title}</p>
+            {task.guide && (
+              <button
+                onClick={() => setShowGuideModal(true)}
+                className="flex-shrink-0 font-mono text-[10px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors"
+              >
+                View Guide
+              </button>
+            )}
+          </div>
           
           <div className="space-y-3">
             <label className={heroLabelStyle}>Quick Note (Optional)</label>
@@ -320,6 +387,44 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
               {isSubmitting ? '...' : 'Save'}
             </button>
           </div>
+
+          {/* Recent Tasks (collapsible) */}
+          {recentTasks.length > 0 && (
+            <div className="pt-4 border-t border-zinc-800/50">
+              <button
+                onClick={() => setShowRecentTasks(!showRecentTasks)}
+                className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-400 transition-colors"
+              >
+                <svg 
+                  className={`w-3 h-3 transition-transform ${showRecentTasks ? 'rotate-90' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                Recent Tasks ({recentTasks.length})
+              </button>
+              
+              {showRecentTasks && (
+                <div className="mt-3 space-y-2">
+                  {recentTasks.slice(0, 5).map((t) => (
+                    <div key={t.id} className="flex items-start gap-2 text-zinc-500">
+                      <span className="font-mono text-[11px]">
+                        {t.status === 'done' ? '✓' : '→'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-[12px] text-zinc-400 truncate">{t.title}</p>
+                        {t.reflection && (
+                          <p className="font-mono text-[10px] text-zinc-600 truncate mt-0.5">"{t.reflection}"</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -380,6 +485,44 @@ export default function TodayCard({ task: initialTask, isHero = false }: TodayCa
           <span className={heroLabelStyle}>Guardrail</span>
           <p className={heroBodyText}>{task.guardrail || 'Take your time'}</p>
         </div>
+
+        {/* Recent Tasks (collapsible) */}
+        {recentTasks.length > 0 && (
+          <div className="pt-4 border-t border-zinc-800/50">
+            <button
+              onClick={() => setShowRecentTasks(!showRecentTasks)}
+              className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-400 transition-colors"
+            >
+              <svg 
+                className={`w-3 h-3 transition-transform ${showRecentTasks ? 'rotate-90' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              Recent Tasks ({recentTasks.length})
+            </button>
+            
+            {showRecentTasks && (
+              <div className="mt-3 space-y-2">
+                {recentTasks.slice(0, 5).map((t) => (
+                  <div key={t.id} className="flex items-start gap-2 text-zinc-500">
+                    <span className="font-mono text-[11px]">
+                      {t.status === 'done' ? '✓' : '→'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-[12px] text-zinc-400 truncate">{t.title}</p>
+                      {t.reflection && (
+                        <p className="font-mono text-[10px] text-zinc-600 truncate mt-0.5">"{t.reflection}"</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
