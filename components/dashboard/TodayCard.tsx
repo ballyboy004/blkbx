@@ -43,8 +43,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Guide modal state for reflection page
   const [showGuideModal, setShowGuideModal] = useState(false)
   
-  // Recent tasks visibility
-  const [showRecentTasks, setShowRecentTasks] = useState(false)
+  // Recent tasks visibility - default to expanded if there are tasks
+  const [showRecentTasks, setShowRecentTasks] = useState(true)
   
   // Store last reflection to pass with refresh request
   const lastReflectionRef = useRef<string>('')
