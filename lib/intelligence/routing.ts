@@ -341,122 +341,98 @@ ${context.skipPattern.count >= 2 ? '6. AVOIDS approaches they consistently skip'
 
 function getTypeSpecificGuidance(type: TaskType, history: BehavioralHistory): string {
   
+  const aestheticReminder = `
+⚠️  CRITICAL: EVERY task must mention their aesthetic/genre BY NAME in BOTH title/what AND reasoning.
+    Do NOT use generic "your style" or "your sound" - use their EXACT aesthetic terms from profile.
+`
+  
   const guidance: Record<TaskType, string> = {
-    'first-content': `
+    'first-content': `${aestheticReminder}
 For a FIRST CONTENT task:
 - Keep it simple (phone camera is fine)
-- Focus on capturing, not perfecting
-- Match their aesthetic from profile
+- MANDATORY: Reference their specific aesthetic/genre BY NAME
 - Single piece of content, not a batch
-- Reference their genre/sound explicitly
-Example: "Film one 15-second performance clip of your hook - moody lighting matches your dark R&B aesthetic"`,
+- Match their vibe (if dark R&B → moody/shadowy, if lo-fi → chill/raw)
+Example: "Film one moody clip of you layering beats - shadowy Weeknd-influenced vibe matching your dark R&B sound"`,
 
-    'batch-content': `
+    'batch-content': `${aestheticReminder}
 For BATCH CONTENT creation:
 - Suggest 3-5 pieces in one session
+- MANDATORY: Every piece matches their aesthetic/genre explicitly
 - Same setup/location for efficiency
 - Match their time constraint explicitly
-- Provide hook/angle for each piece
-- Reference their aesthetic/genre
-Example: "Write 3 posts breaking down your EP's narrative arc - your storytelling strength, not video content"`,
+Example: "Create 3 atmospheric behind-the-scenes clips of your experimental/ambient production process"`,
 
-    'optimize-content': `
+    'optimize-content': `${aestheticReminder}
 For OPTIMIZING existing approach:
 - Don't suggest "make more" — they post already
-- Focus on ONE specific variable to test
-- Reference what's NOT working (from stuck_on field)
-- Suggest measurable improvement
-- Match their aesthetic approach
-Example: "Test darker, moodier thumbnails on next 3 videos - lean into your cinematic aesthetic vs trying to be bright/poppy"`,
+- Focus on ONE aesthetic-specific variable to test
+- Reference their exact aesthetic from profile
+Example: "Test moodier, darker thumbnails on next 3 videos - double down on your dark R&B aesthetic vs trying to be bright"`,
 
-    'release-planning': `
+    'release-planning': `${aestheticReminder}
 For RELEASE PLANNING:
-- Focus on ONE song or the EP, not everything
-- Simple promotional approach (not 50-step plan)
-- Match their "depth over hype" if they mention that philosophy
-- Don't force daily content machine behavior
-- Lean into their stated strengths
-Example: "Pick release date 4 weeks out and plan 4 key beats: announcement, liner notes drop, release, follow-up"`,
+- Focus on ONE song or EP that matches their aesthetic
+- MANDATORY: Reference their aesthetic/genre in the plan
+- Simple promotional approach matching their vibe
+Example: "Plan 4 moody teaser moments for your dark R&B release - atmospheric snippets, not bright poppy content"`,
 
-    'pre-release-content': `
+    'pre-release-content': `${aestheticReminder}
 For PRE-RELEASE CONTENT:
-- Create teaser content for upcoming release
-- Match their aesthetic explicitly
-- Don't reveal everything - build mystique
-- Lean into their content strength (if they write well → written teasers, if they film well → video)
-Example: "Write cryptic track-by-track hints as text posts - your lyricism strength, builds mystery"`,
+- Create teaser content matching their aesthetic explicitly by name
+- Build mystique that fits their vibe (dark → shadowy, experimental → abstract)
+- MANDATORY: Reference their aesthetic/genre in title and reasoning
+Example: "Film 3 shadowy teaser clips for your dark R&B release - moody Weeknd-influenced atmosphere"`,
 
-    'post-release-engagement': `
+    'post-release-engagement': `${aestheticReminder}
 For POST-RELEASE ENGAGEMENT:
-- Engage with responses to release
-- Thank fans, respond to comments
-- Share reactions/testimonials
-- Keep momentum without burning out
-Example: "Spend 30 mins responding to comments on your release post - engage depth over breadth"`,
+- Engage with fans who resonate with their specific aesthetic
+- Reference their sound when responding
+Example: "Thank fans who specifically mentioned your moody/dark R&B vibe - your aesthetic people"`,
 
-    'edit-content': `
+    'edit-content': `${aestheticReminder}
 For EDITING task (they just filmed):
-- Reference what they just created
-- Keep editing simple and aesthetic-matched
-- Don't over-produce if aesthetic is raw/lo-fi
-- Include time estimate
-Example: "Edit your filmed clips: add dark vignette, minimal cuts, layer your track underneath - keep it moody like your sound"`,
+- Editing style must match their aesthetic (dark R&B → moody grading, lo-fi → raw)
+- Reference their aesthetic by name
+Example: "Edit clips with dark vignette and grain - match your experimental/ambient aesthetic"`,
 
-    'post-content': `
+    'post-content': `${aestheticReminder}
 For POSTING task (they just edited):
-- Help them actually publish
-- Include caption/timing guidance
-- Suggest platform based on their goal
-- Reduce posting friction
-- Match their voice/aesthetic in suggested caption
-Example: "Post your edited clip to TikTok at 7pm with caption: 'late night sessions → [track name] coming soon'"`,
+- Timing and platform should match their vibe
+- Caption reflects their aesthetic language
+Example: "Post your moody clip at night - matches your dark R&B timing and atmosphere"`,
 
-    'engage-audience': `
+    'engage-audience': `${aestheticReminder}
 For ENGAGEMENT task (they just posted):
-- Respond to comments on recent post
-- Engage with similar creators in their niche
-- Be specific about HOW to engage (not just "engage more")
-- Match their energy level constraint
-Example: "Respond to 5-10 comments on your post, then find 3 artists making cinematic hip-hop and genuinely engage with their work"`,
+- Find creators in their aesthetic lane specifically
+- Engage with fans who GET their vibe
+Example: "Find 3 dark R&B/experimental producers - your aesthetic peers, not random creators"`,
 
-    'analyze-performance': `
+    'analyze-performance': `${aestheticReminder}
 For ANALYSIS task:
-- Look at what's working vs not
-- Identify ONE insight to act on
-- Don't overwhelm with metrics
-- Keep it actionable
-Example: "Look at your last 5 posts - which hooks stopped scrollers vs got skipped? Test that pattern on next batch"`,
+- Analyze what aesthetic-specific content works
+- Identify patterns in their vibe
+Example: "Check which clips resonated - likely your moodier dark R&B content vs anything bright"`,
 
     'reflection-prompt': `
 For REFLECTION PROMPT (they've skipped 3+ tasks):
-- Generate a question to understand blocking pattern
-- Don't assume why they're skipping
-- Keep it open-ended and non-judgmental
-- Examples:
-  * "You've skipped the last few filming tasks - what's making that feel hard right now?"
-  * "What kind of tasks feel most doable given your current energy/time?"
-  * "What's blocking you from moving forward on [their stated goal]?"
+- Ask what's blocking them
+- Keep open-ended and non-judgmental
+Example: "You've skipped filming tasks - what's making visual content feel hard?"
   
-CRITICAL: This should be a PROMPT for reflection, not a task. The system needs to pause and understand before generating more tasks they'll skip.`,
+CRITICAL: This is a reflection PROMPT, not a task.`,
 
-    'alternative-approach': `
-For ALTERNATIVE APPROACH (they complete some types but skip others):
-- Look at what they COMPLETE vs SKIP
-- Lean heavily into demonstrated strengths
-- Example patterns:
-  * Completes writing, skips filming → more writing tasks
-  * Completes community tasks, skips creation → more curation/engagement
-  * Completes strategic planning, skips execution → break execution into micro-steps
-  
-Generate a task in their STRENGTH ZONE, not their skip zone.`,
+    'alternative-approach': `${aestheticReminder}
+For ALTERNATIVE APPROACH (strength pattern detected):
+- Lean into what they COMPLETE with aesthetic specificity
+- Match strength to their aesthetic
+Example: "You complete writing - write 3 atmospheric descriptions of your dark R&B tracks"`,
 
-    'strategic-planning': `
-For STRATEGIC PLANNING (unclear situation):
-- Help them clarify next move
-- Focus on their stated goal
-- Keep it simple and actionable
-- Not a 10-page strategy doc
-Example: "Map out your path from 'unreleased EP' to 'fans listening' in 3-4 major beats - keep it simple"`,
+    'strategic-planning': `${aestheticReminder}
+For STRATEGIC PLANNING:
+- Clarify their path for their SPECIFIC aesthetic
+- Not generic strategy
+Example: "Map out how to position your dark R&B/experimental sound in 3-4 moves"`,
   }
   
   return guidance[type] || 'Generate a task appropriate for this routing category.'

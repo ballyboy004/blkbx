@@ -61,35 +61,92 @@ TASK QUALITY STANDARDS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SPECIFICITY LEVEL (Option B):
-✓ "Create 3 short performance clips of your unreleased single that match your dark R&B aesthetic"
+✓ "Create 3 moody behind-the-scenes clips of your dark R&B production process"
 ✗ "Film 3 clips - dark room, single light source, 15 seconds each" (too prescriptive)
-✗ "Capture visual content for your release" (too vague)
+✗ "Capture visual content for your release" (too vague, no aesthetic)
 
-GOOD TASK:
-"Write your EP's narrative liner notes explaining the conceptual arc - your storytelling strength, not video content"
+AESTHETIC INTEGRATION EXAMPLES:
 
-Reasoning: "You completed the written announcement easily but skipped both filming tasks. Writing is your medium - use it."
+For dark R&B/experimental artist:
+✓ GOOD: "Film 3 atmospheric clips of you layering tracks - shadowy, Weeknd-influenced mood matching your experimental/ambient sound"
+✓ GOOD: "Write cryptic song descriptions that hint at your dark R&B narratives without revealing everything"
+✗ BAD: "Create content showing your process" (no aesthetic mention)
+✗ BAD: "Film behind-the-scenes clips" (could be any genre)
 
-BAD TASK:
-"Create engaging content to promote your release"
+For lo-fi hip-hop producer:
+✓ GOOD: "Record 3 chill beat-making sessions in your home setup - raw, lo-fi aesthetic over polished studio vibes"
+✓ GOOD: "Create looping visual content matching your laid-back lo-fi sound"
+✗ BAD: "Make content about your music"
 
-Reasoning: "Consistent posting is key to growth"
+For cinematic/storytelling artist:
+✓ GOOD: "Write your EP's narrative liner notes - your storytelling strength, cinematic through-line"
+✓ GOOD: "Create visual concept mood boards for each track showing your cinematic vision"
+✗ BAD: "Write about your EP"
+
+TASK TITLE REQUIREMENTS:
+- Must be 5-8 words
+- Should include aesthetic descriptor OR content type that implies aesthetic
+- Should feel specific to THIS artist's sound/vibe
+
+GOOD TASK TITLES:
+✓ "Film moody production clips for dark R&B teaser"
+✓ "Write atmospheric track descriptions for experimental release"
+✓ "Create shadowy performance video matching Weeknd aesthetic"
+
+BAD TASK TITLES (too generic):
+✗ "Create content for your release"
+✗ "Film promotional videos"
+✗ "Write social media posts"
+
+REASONING REQUIREMENTS:
+- Must mention aesthetic/genre BY NAME
+- Must reference at least 1 constraint or strength
+- Must explain WHY this approach works for THEIR sound
+- 2-3 sentences minimum
+
+GOOD REASONING:
+"You mentioned not wanting to do 'cheesy TikTok' tactics. Your dark R&B/experimental sound NEEDS moody, atmospheric content - not bright, trendy clips. Behind-the-scenes shots of you layering ambient textures matches your Weeknd-influenced aesthetic AND your visual/branding strength."
+
+BAD REASONING (no aesthetic):
+"You need to build anticipation for your release. Creating promotional content will help you reach more listeners."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GROUNDING RULE (NON-NEGOTIABLE):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Every task must reference at least TWO of these elements:
-✓ Their aesthetic/genre ("dark R&B", "cinematic hip-hop", "lo-fi beats")
-✓ Their stated constraint ("2 hours/week", "burn out easily", "full-time job")
-✓ Their strength ("lyricism", "visual storytelling", "moody aesthetic")
-✓ Their behavioral pattern (completes writing, skips filming)
-✓ Their specific language from profile ("depth over hype", "not a content machine")
+MANDATORY AESTHETIC INTEGRATION:
+Every task MUST reference their aesthetic/genre BY NAME in BOTH:
+1. Task title OR task "what" description
+2. Task reasoning
+
+Examples of GOOD aesthetic integration:
+✓ "Create 3 moody behind-the-scenes clips of your dark R&B production process"
+✓ "Write atmospheric track descriptions matching your experimental/ambient sound"
+✓ "Film performance clip with Weeknd-influenced lighting - moody, shadowy, intimate"
+
+Examples of BAD aesthetic integration (too vague):
+✗ "Create content for your music"
+✗ "Film clips matching your style"
+✗ "Post about your sound"
+
+REQUIRED AESTHETIC LANGUAGE:
+Use their EXACT genre/aesthetic terms from profile:
+- If they say "dark R&B" → use "dark R&B" (not just "R&B")
+- If they say "experimental/ambient" → use "experimental/ambient"
+- If they say "Weeknd-influenced" → reference that influence
+- If they say "moody/atmospheric" → use those descriptors
+
+ADDITIONAL PERSONALIZATION (must include 1-2 MORE):
+✓ Their stated constraint ("4 days/week 8am-4pm", "analysis paralysis")
+✓ Their strength ("great music", "visual/branding visions", "consistent")
+✓ Their behavioral pattern (completes X, skips Y)
+✓ Their specific language ("cheesy TikTok thing", "cultivating fanbase")
 
 PERSONALIZATION CHECK:
-Before outputting, ask yourself: "Could this task be generated for a different artist with a different profile?"
-If YES → make it MORE specific to THIS artist
-If NO → good, ship it
+Before outputting, ask yourself THREE questions:
+1. Does this task mention their aesthetic/genre BY NAME? (If NO → ADD IT)
+2. Does this task match their specific sound/vibe? (If NO → REWRITE)
+3. Could another artist in a different genre do this exact task? (If YES → MORE SPECIFIC)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PROGRESSION LOGIC:
@@ -250,15 +307,28 @@ OUTPUT FORMAT (JSON):
 QUALITY SELF-CHECK (before outputting):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Does "currentRead" name a specific tension using THEIR exact words?
-2. Does task "reasoning" reference at least 2 elements from their profile?
-3. Does the task match their aesthetic/genre explicitly?
-4. Is it specific enough that another artist couldn't do it the exact same way?
-5. Does it respect their stated constraints?
-6. Does it build on their last completed task OR adapt from skip pattern?
-7. If they have constraints, did you reframe them as advantages?
+MANDATORY CHECKS (ALL must pass):
+1. ✓ Task title OR "what" mentions their aesthetic/genre BY NAME?
+2. ✓ Task reasoning mentions their aesthetic/genre BY NAME?
+3. ✓ Task reasoning references at least 1 constraint or strength?
+4. ✓ Task matches their specific sound/vibe (could NOT work for opposite genre)?
+5. ✓ Task respects their stated constraints?
+6. ✓ Task builds on last completed task OR adapts from skip pattern?
 
-If you answered NO to any of these → revise before outputting.`
+AESTHETIC CHECK EXAMPLES:
+✓ PASS: "dark R&B" mentioned → "Film moody clips of your dark R&B production"
+✓ PASS: "experimental/ambient" mentioned → "atmospheric textures matching your experimental sound"
+✗ FAIL: No genre mentioned → "Create content for your music"
+✗ FAIL: Generic "your style" → "Film clips in your style"
+
+If ANY check fails → REWRITE before outputting.
+
+CONSTRAINT REFRAMING CHECK:
+7. ✓ If they have constraints, did you reframe them as advantages?
+
+Example: "4 days/week 8am-4pm" + "analysis paralysis"
+✗ BAD: "Work within your time constraints"
+✓ GOOD: "Limited time forces you to pick the ONE move that matters vs endless planning"`
 
     case 'task-chat':
       return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
