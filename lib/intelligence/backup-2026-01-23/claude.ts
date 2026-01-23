@@ -1,6 +1,6 @@
 // lib/intelligence/claude.ts
 // Claude API client with rate limiting
-// UPDATED: Switched to Sonnet 4 for higher intelligence quality
+// Design: BLACKBOX_V1_INTELLIGENCE_LAYER_DESIGN.md
 
 import Anthropic from '@anthropic-ai/sdk'
 
@@ -66,19 +66,6 @@ function getClaudeClient(): Anthropic {
 /**
  * Generate text using Claude API with rate limiting
  * 
- * UPDATED: Now uses claude-sonnet-4 for better personalization and intelligence
- * 
- * Cost comparison:
- * - Haiku: $0.80 input / $4 output per 1M tokens
- * - Sonnet 4: $3 input / $15 output per 1M tokens
- * - Sonnet is ~3.75x more expensive but MUCH better at personalization
- * 
- * With 7-day caching, cost is negligible:
- * - ~7 API calls per user per month
- * - Haiku: ~$0.02/user/month
- * - Sonnet: ~$0.07/user/month
- * - Worth the 5 cents for dramatically better intelligence
- * 
  * @param systemPrompt - The full system prompt (includes profile data)
  * @param options - Optional configuration
  * @returns Generated text and token usage
@@ -103,9 +90,8 @@ export async function generateWithClaude(
 
   try {
     const response = await client.messages.create({
-      // CHANGED: Haiku → Sonnet 4 for better intelligence
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: options.maxTokens || 2000, // Increased from 1000 for richer outputs
+      model: 'claude-3-5-haiku-20241022',
+      max_tokens: options.maxTokens || 1000,
       temperature: options.temperature ?? 0.7,
       messages: [
         {
@@ -128,11 +114,9 @@ export async function generateWithClaude(
     }
 
     console.log('[Intelligence] API call successful', {
-      model: 'claude-sonnet-4',
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       textLength: text.length,
-      estimatedCost: calculateCost(usage)
     })
 
     return {
@@ -148,63 +132,15 @@ export async function generateWithClaude(
 /**
  * Calculate cost for a given token usage
  * 
- * UPDATED: Pricing for Claude Sonnet 4
- * - Input: $3 per 1M tokens
- * - Output: $15 per 1M tokens
+ * Pricing (Claude 3.5 Haiku):
+ * - Input: $0.80 per 1M tokens
+ * - Output: $4 per 1M tokens
  */
 export function calculateCost(usage: {
   inputTokens: number
   outputTokens: number
 }): number {
-  const inputCost = (usage.inputTokens / 1_000_000) * 3    // $3 per 1M
-  const outputCost = (usage.outputTokens / 1_000_000) * 15 // $15 per 1M
+  const inputCost = (usage.inputTokens / 1_000_000) * 0.80
+  const outputCost = (usage.outputTokens / 1_000_000) * 4
   return inputCost + outputCost
-}
-
-/**
- * Estimate monthly cost per user
- * 
- * Typical usage with 7-day caching:
- * - Onboarding: 1 generation (~800 input, ~300 output) = $0.007
- * - Weekly refresh: 4 per month (~600 input, ~200 output) = $0.012
- * - Profile updates: ~2 per month (~600 input, ~200 output) = $0.006
- * - Task generation: ~8 per month (~700 input, ~250 output) = $0.032
- * 
- * Total: ~$0.06-0.07 per user per month
- * 
- * At scale:
- * - 100 users = ~$6/month
- * - 1,000 users = ~$60/month
- * - 10,000 users = ~$600/month
- * 
- * At $20/month pricing:
- * - 1,000 users = $20,000 revenue
- * - API cost = $60 (0.3% of revenue)
- * 
- * Decision: Worth it for dramatically better personalization.
- */
-export function estimateMonthlyUserCost(): number {
-  const onboarding = calculateCost({ inputTokens: 800, outputTokens: 300 })
-  const weeklyRefresh = calculateCost({ inputTokens: 600, outputTokens: 200 }) * 4
-  const profileUpdates = calculateCost({ inputTokens: 600, outputTokens: 200 }) * 2
-  const taskGeneration = calculateCost({ inputTokens: 700, outputTokens: 250 }) * 8
-  
-  return onboarding + weeklyRefresh + profileUpdates + taskGeneration
-}
-
-/**
- * Log cost metrics for monitoring
- */
-export function logCostMetrics(usage: {
-  inputTokens: number
-  outputTokens: number
-}): void {
-  const cost = calculateCost(usage)
-  
-  console.info('[Intelligence] Cost metrics:', {
-    inputTokens: usage.inputTokens,
-    outputTokens: usage.outputTokens,
-    costUSD: cost.toFixed(6),
-    estimatedMonthlyPerUser: estimateMonthlyUserCost().toFixed(4)
-  })
 }
