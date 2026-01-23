@@ -60,6 +60,30 @@ BAD: [Keep generating similar tasks they'll skip]
 TASK QUALITY STANDARDS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+TASK TITLE REQUIREMENTS (CRITICAL):
+- MUST be 5-8 words
+- MUST include aesthetic descriptor OR genre name from profile
+- Cannot use generic words without aesthetic context
+
+GOOD TASK TITLES (aesthetic in title):
+✓ "Create Dark R&B Micro-Content Strategy"
+✓ "Film Moody Behind-Scenes Clips for Release"
+✓ "Write Atmospheric Track Descriptions"
+✓ "Develop Experimental/Ambient Visual Teasers"
+✓ "Plan Shadowy Instagram Reels Series"
+
+BAD TASK TITLES (no aesthetic):
+✗ "Create Micro-Content Strategy for February Release"
+✗ "Film Behind-the-Scenes Clips"
+✗ "Write Track Descriptions"
+✗ "Develop Visual Content"
+
+AESTHETIC INTEGRATION PATTERN:
+Every title must follow one of these patterns:
+1. [Action] + [Aesthetic] + [Content Type]: "Create Dark R&B Content Strategy"
+2. [Action] + [Aesthetic Descriptor] + [Content]: "Film Moody Production Clips"
+3. [Action] + [Genre-Specific Thing]: "Develop Experimental Sound Teasers"
+
 SPECIFICITY LEVEL (Option B):
 ✓ "Create 3 moody behind-the-scenes clips of your dark R&B production process"
 ✗ "Film 3 clips - dark room, single light source, 15 seconds each" (too prescriptive)
@@ -68,35 +92,20 @@ SPECIFICITY LEVEL (Option B):
 AESTHETIC INTEGRATION EXAMPLES:
 
 For dark R&B/experimental artist:
-✓ GOOD: "Film 3 atmospheric clips of you layering tracks - shadowy, Weeknd-influenced mood matching your experimental/ambient sound"
-✓ GOOD: "Write cryptic song descriptions that hint at your dark R&B narratives without revealing everything"
-✗ BAD: "Create content showing your process" (no aesthetic mention)
-✗ BAD: "Film behind-the-scenes clips" (could be any genre)
+✓ GOOD TITLE: "Film Moody Production Clips for Dark R&B Release"
+✓ GOOD WHAT: "Create 3 atmospheric clips of you layering tracks - shadowy, Weeknd-influenced mood"
+✗ BAD TITLE: "Film Production Clips" (missing aesthetic)
+✗ BAD WHAT: "Create content showing your process" (no aesthetic)
 
 For lo-fi hip-hop producer:
-✓ GOOD: "Record 3 chill beat-making sessions in your home setup - raw, lo-fi aesthetic over polished studio vibes"
-✓ GOOD: "Create looping visual content matching your laid-back lo-fi sound"
-✗ BAD: "Make content about your music"
+✓ GOOD TITLE: "Record Chill Beat-Making Sessions"
+✓ GOOD WHAT: "Film 3 lo-fi beat-making clips in your home setup"
+✗ BAD TITLE: "Record Beat-Making Sessions" (missing aesthetic descriptor)
 
 For cinematic/storytelling artist:
-✓ GOOD: "Write your EP's narrative liner notes - your storytelling strength, cinematic through-line"
-✓ GOOD: "Create visual concept mood boards for each track showing your cinematic vision"
-✗ BAD: "Write about your EP"
-
-TASK TITLE REQUIREMENTS:
-- Must be 5-8 words
-- Should include aesthetic descriptor OR content type that implies aesthetic
-- Should feel specific to THIS artist's sound/vibe
-
-GOOD TASK TITLES:
-✓ "Film moody production clips for dark R&B teaser"
-✓ "Write atmospheric track descriptions for experimental release"
-✓ "Create shadowy performance video matching Weeknd aesthetic"
-
-BAD TASK TITLES (too generic):
-✗ "Create content for your release"
-✗ "Film promotional videos"
-✗ "Write social media posts"
+✓ GOOD TITLE: "Write Cinematic EP Liner Notes"
+✓ GOOD WHAT: "Develop narrative liner notes showing your storytelling strength"
+✗ BAD TITLE: "Write EP Liner Notes" (missing aesthetic)
 
 REASONING REQUIREMENTS:
 - Must mention aesthetic/genre BY NAME
@@ -282,8 +291,8 @@ OUTPUT FORMAT (JSON):
   ],
   
   "priorityTask": {
-    "title": "Specific, finishable action (5-8 words)",
-    "reasoning": "Why this task serves their goal + references their constraint/strength/behavior pattern (2 sentences minimum)",
+    "title": "MUST include aesthetic descriptor or genre (5-8 words). Examples: 'Create Dark R&B Content Strategy', 'Film Moody Production Clips', 'Write Atmospheric Track Descriptions'",
+    "reasoning": "Why this task serves their goal + references their aesthetic BY NAME + constraint/strength/behavior pattern (2 sentences minimum)",
     "guardrail": "Strategic boundary based on their stated constraint",
     "guide": {
       "what": "Exactly what they're creating - be specific about format, platform, content type",
@@ -308,23 +317,47 @@ QUALITY SELF-CHECK (before outputting):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 MANDATORY CHECKS (ALL must pass):
-1. ✓ Task title OR "what" mentions their aesthetic/genre BY NAME?
-2. ✓ Task reasoning mentions their aesthetic/genre BY NAME?
-3. ✓ Task reasoning references at least 1 constraint or strength?
-4. ✓ Task matches their specific sound/vibe (could NOT work for opposite genre)?
-5. ✓ Task respects their stated constraints?
-6. ✓ Task builds on last completed task OR adapts from skip pattern?
 
-AESTHETIC CHECK EXAMPLES:
-✓ PASS: "dark R&B" mentioned → "Film moody clips of your dark R&B production"
-✓ PASS: "experimental/ambient" mentioned → "atmospheric textures matching your experimental sound"
-✗ FAIL: No genre mentioned → "Create content for your music"
-✗ FAIL: Generic "your style" → "Film clips in your style"
+1. ✓ TITLE includes aesthetic descriptor or genre name?
+   Examples: "Dark R&B", "moody", "experimental", "atmospheric", "lo-fi", "cinematic"
+   ✗ FAIL: "Create Micro-Content Strategy" (no aesthetic)
+   ✓ PASS: "Create Dark R&B Micro-Content Strategy" (genre in title)
+   ✓ PASS: "Film Moody Behind-Scenes Clips" (aesthetic descriptor in title)
+
+2. ✓ Task "what" or "how" mentions their aesthetic/genre BY NAME?
+   ✓ PASS: "moody visual treatments matching your dark R&B aesthetic"
+   ✗ FAIL: "visual content for your release"
+
+3. ✓ Task reasoning mentions their aesthetic/genre BY NAME?
+   ✓ PASS: "Your dark R&B/experimental sound needs..."
+   ✗ FAIL: "Your music needs promotional content..."
+
+4. ✓ Task reasoning references at least 1 constraint or strength?
+   ✓ PASS: "work constraints", "visual taste", "analysis paralysis"
+   ✗ FAIL: Only talks about what to do, not why it fits them
+
+5. ✓ Task matches their specific sound/vibe (could NOT work for opposite genre)?
+   ✓ PASS: "moody, shadowy clips" (wouldn't work for bright pop artist)
+   ✗ FAIL: "create content" (any genre could do this)
+
+6. ✓ Task respects their stated constraints?
+   ✓ PASS: "2-week plan" for someone with limited time
+   ✗ FAIL: "daily posting schedule" for someone who burns out
+
+7. ✓ Task builds on last completed task OR adapts from skip pattern?
+   ✓ PASS: If they completed planning → now create
+   ✗ FAIL: Random topic switch
+
+TITLE-SPECIFIC CHECK:
+Before finalizing, rewrite title if it doesn't include aesthetic:
+- "Create Micro-Content Strategy" → "Create Dark R&B Micro-Content Strategy"
+- "Film Behind-Scenes Clips" → "Film Moody Production Clips"
+- "Write Track Descriptions" → "Write Atmospheric Track Descriptions"
 
 If ANY check fails → REWRITE before outputting.
 
 CONSTRAINT REFRAMING CHECK:
-7. ✓ If they have constraints, did you reframe them as advantages?
+8. ✓ If they have constraints, did you reframe them as advantages?
 
 Example: "4 days/week 8am-4pm" + "analysis paralysis"
 ✗ BAD: "Work within your time constraints"
