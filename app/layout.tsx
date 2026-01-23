@@ -19,9 +19,6 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "BLACKBOX",
   description: "Career infrastructure for artists who move different",
-  icons: {
-    icon: "/icon.svg",
-  },
 }
 
 export default function RootLayout({
