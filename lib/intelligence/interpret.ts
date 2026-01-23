@@ -105,8 +105,8 @@ export async function generateDashboardIntelligence(
 
     try {
       const { text, usage } = await generateWithClaude(systemPrompt, {
-        maxTokens: 1000,
-        temperature: 0.4,
+        maxTokens: 800,
+        temperature: 0.3,
       })
 
       let intelligence: DashboardIntelligence
