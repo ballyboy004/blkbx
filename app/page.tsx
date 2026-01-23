@@ -54,7 +54,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-[340px] space-y-8">
+    <>
       {/* Brand Header */}
       <div className="text-center space-y-3">
         <h1 className="text-7xl font-inter font-black tracking-[-0.08em] text-white lowercase">
@@ -113,7 +113,37 @@ function LoginForm() {
           create account
         </Link>
       </div>
-    </div>
+    </>
+  );
+}
+
+function LoginFormSkeleton() {
+  return (
+    <>
+      {/* Brand Header */}
+      <div className="text-center space-y-3">
+        <h1 className="text-7xl font-inter font-black tracking-[-0.08em] text-white lowercase">
+          blackbox<span className="text-5xl">.</span>
+        </h1>
+        <p className="text-[12px] lowercase tracking-tight font-mono text-zinc-500">
+          creative intelligence
+        </p>
+      </div>
+
+      {/* Skeleton Form */}
+      <div className="space-y-4">
+        <div className="h-11 bg-zinc-900/50 border border-zinc-800 rounded-md" />
+        <div className="h-11 bg-zinc-900/50 border border-zinc-800 rounded-md" />
+        <div className="h-11 bg-zinc-900/30 border border-zinc-800 rounded-md" />
+      </div>
+
+      {/* Link placeholder */}
+      <div className="text-center">
+        <span className="text-xs text-zinc-600 font-mono tracking-tight lowercase">
+          create account
+        </span>
+      </div>
+    </>
   );
 }
 
@@ -141,15 +171,11 @@ export default function LoginPage() {
 
       {/* Centered Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
-        <Suspense fallback={
-          <div className="text-center">
-            <h1 className="text-7xl font-inter font-black tracking-[-0.08em] text-white lowercase">
-              blackbox<span className="text-5xl">.</span>
-            </h1>
-          </div>
-        }>
-          <LoginForm />
-        </Suspense>
+        <div className="w-full max-w-[340px] space-y-8">
+          <Suspense fallback={<LoginFormSkeleton />}>
+            <LoginForm />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
