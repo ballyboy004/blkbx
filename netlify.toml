@@ -1,0 +1,14 @@
+[functions]
+  # Extend timeout for AI API calls
+  external_node_modules = ["@anthropic-ai/sdk"]
+
+[[edge_functions]]
+  path = "/api/*"
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Extend function timeout to 26 seconds (max for free tier)
+[functions."api/*"]
+  timeout = 26

@@ -15,10 +15,11 @@ interface TodayCardProps {
 }
 
 export default function TodayCard({ task: initialTask }: TodayCardProps) {
-  const [task, setTask] = useState<PriorityTask>(initialTask)
+  const [task, setTask] = useState<PriorityTask | null>(initialTask)
   const [isSkipping, setIsSkipping] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
   
   const [showReflection, setShowReflection] = useState(false)
   const [reflection, setReflection] = useState('')
@@ -37,29 +38,40 @@ export default function TodayCard({ task: initialTask }: TodayCardProps) {
 
   async function fetchNewTask() {
     setIsRefreshing(true)
+    setFetchError(false)
+    
     try {
-      const response = await fetch('/api/intelligence/refresh')
+      const response = await fetch('/api/intelligence/refresh', {
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
       const data = await response.json()
       
       if (data.success && data.task) {
         setTask(data.task)
       } else {
         console.error('[TodayCard] Failed to fetch new task:', data.error)
+        setFetchError(true)
       }
     } catch (error) {
       console.error('[TodayCard] Fetch error:', error)
+      setFetchError(true)
     } finally {
       setIsRefreshing(false)
     }
   }
 
   function handleDoneClick() {
-    if (isLoading) return
+    if (isLoading || !task) return
     setShowReflection(true)
   }
 
   async function handleCompleteWithReflection() {
-    if (isSubmitting) return
+    if (isSubmitting || !task) return
     setIsSubmitting(true)
 
     try {
@@ -95,7 +107,7 @@ export default function TodayCard({ task: initialTask }: TodayCardProps) {
   }
 
   async function handleSkipReflection() {
-    if (isSubmitting) return
+    if (isSubmitting || !task) return
     setIsSubmitting(true)
 
     try {
@@ -128,7 +140,7 @@ export default function TodayCard({ task: initialTask }: TodayCardProps) {
   }
 
   async function handleSkip() {
-    if (isLoading) return
+    if (isLoading || !task) return
     setIsSkipping(true)
 
     try {
@@ -151,6 +163,26 @@ export default function TodayCard({ task: initialTask }: TodayCardProps) {
       alert('An error occurred. Please try again.')
       setIsSkipping(false)
     }
+  }
+
+  // Error state - show retry button
+  if (fetchError) {
+    return (
+      <div className="p-10 transition-all duration-300" style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
+        <div className="py-12 text-center space-y-4">
+          <p className="font-mono text-[12px] text-zinc-400">
+            Couldn't generate task
+          </p>
+          <button
+            onClick={fetchNewTask}
+            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   // Success state
@@ -177,6 +209,26 @@ export default function TodayCard({ task: initialTask }: TodayCardProps) {
           <p className="font-mono text-[12px] uppercase tracking-[0.15em] text-zinc-400 animate-pulse">
             Thinking...
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  // No task state
+  if (!task) {
+    return (
+      <div className="p-10 transition-all duration-300" style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
+        <div className="py-12 text-center space-y-4">
+          <p className="font-mono text-[12px] text-zinc-400">
+            No task available
+          </p>
+          <button
+            onClick={fetchNewTask}
+            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors"
+          >
+            Generate Task
+          </button>
         </div>
       </div>
     )
