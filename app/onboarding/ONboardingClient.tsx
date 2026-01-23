@@ -491,7 +491,7 @@ export default function OnboardingClient({
                     {/* Where stuck */}
                     <FieldBlock label="where do you feel stuck?">
                       <AutoExpandTextarea
-                        placeholder='ex: "i make content but never post it" / "i post but get no engagement" / "i don't know what to make"'
+                        placeholder="ex: 'i make content but never post it' / 'i post but get no engagement' / 'i dont know what to make'"
                         value={stuckOn}
                         onChange={setStuckOn}
                         minHeight={70}
