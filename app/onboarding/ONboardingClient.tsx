@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
 type CareerStage = "early" | "building" | "momentum" | "breakout" | "pro";
+type ContentActivity = "regular" | "sometimes" | "rarely" | "never";
+type ReleaseStatus = "regular" | "few" | "unreleased" | "first";
 
 type InitialProfile = {
   context: string;
@@ -17,6 +19,14 @@ type InitialProfile = {
   weaknesses: string;
   constraints: string;
   current_focus: string;
+  content_activity: ContentActivity;
+  release_status: ReleaseStatus;
+  stuck_on: string;
+};
+
+type FollowUpQuestion = {
+  question: string;
+  answer: string;
 };
 
 export default function OnboardingClient({
@@ -29,34 +39,46 @@ export default function OnboardingClient({
   initialProfile: InitialProfile;
 }) {
   const supabase = createClient();
-  const SLIDE_MS = 7500; // slower, luxury feel
+  const SLIDE_MS = 900;
 
-  // Steps: 1 = context, 2 = direction, 3 = patterns
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  // Panel index: 0=who you are, 1=follow-ups, 2=where headed, 3=current activity, 4=how work
+  const [panelIndex, setPanelIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
+  const [isGeneratingFollowUps, setIsGeneratingFollowUps] = useState(false);
 
-  // Step 1
+  // Follow-up questions
+  const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpQuestion[]>([]);
+  const [hasGeneratedFollowUps, setHasGeneratedFollowUps] = useState(false);
+
+  // Panel 0 - who you are (context + genre + career stage)
   const [context, setContext] = useState(initialProfile.context ?? "");
-
-  // Step 2
-  const [primaryGoal, setPrimaryGoal] = useState(initialProfile.primary_goal ?? "");
   const [genreSound, setGenreSound] = useState(initialProfile.genre_sound ?? "");
   const [careerStage, setCareerStage] = useState<CareerStage>(initialProfile.career_stage ?? "building");
 
-  // Step 3
+  // Panel 2 - where you're headed (goal + current focus)
+  const [primaryGoal, setPrimaryGoal] = useState(initialProfile.primary_goal ?? "");
+  const [currentFocus, setCurrentFocus] = useState(initialProfile.current_focus ?? "");
+
+  // Panel 3 - current activity (NEW STRUCTURED DATA)
+  const [contentActivity, setContentActivity] = useState<ContentActivity>(initialProfile.content_activity ?? "sometimes");
+  const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>(initialProfile.release_status ?? "few");
+  const [stuckOn, setStuckOn] = useState(initialProfile.stuck_on ?? "");
+
+  // Panel 4 - how you work (strengths, weaknesses, constraints)
   const [strengths, setStrengths] = useState(initialProfile.strengths ?? "");
   const [weaknesses, setWeaknesses] = useState(initialProfile.weaknesses ?? "");
   const [constraints, setConstraints] = useState(initialProfile.constraints ?? "");
-  const [currentFocus, setCurrentFocus] = useState(initialProfile.current_focus ?? "");
 
   const stepMeta = useMemo(() => {
-    if (step === 1) return { subtitle: "setup / context", title: "tell us about yourself" };
-    if (step === 2) return { subtitle: "setup / direction", title: "direction & intent" };
-    return { subtitle: "setup / patterns", title: "how you move" };
-  }, [step]);
+    if (panelIndex === 0) return { subtitle: "setup / identity", title: "who you are" };
+    if (panelIndex === 1) return { subtitle: "setup / identity", title: "who you are" };
+    if (panelIndex === 2) return { subtitle: "setup / direction", title: "where you're headed" };
+    if (panelIndex === 3) return { subtitle: "setup / reality", title: "what you're doing now" };
+    return { subtitle: "setup / patterns", title: "how you work" };
+  }, [panelIndex]);
 
-  // Slider transform: pixel-based to avoid subpixel % rounding (prevents edge "remnants")
-  const stepIndex = step - 1; // 0, 1, 2
+  // Slider transform
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewportW, setViewportW] = useState(0);
 
@@ -73,7 +95,7 @@ export default function OnboardingClient({
     return () => ro.disconnect();
   }, []);
 
-  const trackTransform = `translate3d(-${stepIndex * viewportW}px, 0, 0)`;
+  const trackTransform = `translate3d(-${panelIndex * viewportW}px, 0, 0)`;
 
   async function upsertProfile(payload: Record<string, any>) {
     if (!userId) return { ok: false, message: "No user session found." };
@@ -94,67 +116,175 @@ export default function OnboardingClient({
     return { ok: true as const, message: "" };
   }
 
-  async function handleContinue() {
-    if (step === 1) {
-      const res = await upsertProfile({ context });
-      if (!res.ok) return alert(res.message);
-      setIsSliding(true);
-      setStep(2);
-      setTimeout(() => setIsSliding(false), SLIDE_MS);
-      return;
+  async function generateFollowUps() {
+    if (context.trim().length < 20) {
+      return [];
     }
 
-    if (step === 2) {
-      const res = await upsertProfile({
-        primary_goal: primaryGoal,
+    try {
+      const response = await fetch('/api/onboarding/followups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context, genre: genreSound }),
+      });
+
+      const data = await response.json();
+      return data.questions || [];
+    } catch (error) {
+      console.error('[Onboarding] Failed to generate follow-ups:', error);
+      return [];
+    }
+  }
+
+  async function handleContinue() {
+    // Panel 0: Save identity, generate follow-ups, slide to panel 1
+    if (panelIndex === 0) {
+      const res = await upsertProfile({ 
+        context,
         genre_sound: genreSound,
         career_stage: careerStage,
       });
       if (!res.ok) return alert(res.message);
+
+      // Generate follow-ups
+      setIsGeneratingFollowUps(true);
+      const questions = await generateFollowUps();
+      setIsGeneratingFollowUps(false);
+      setHasGeneratedFollowUps(true);
+
+      if (questions.length > 0) {
+        setFollowUpQuestions(questions.map((q: string) => ({ question: q, answer: '' })));
+        setIsSliding(true);
+        setPanelIndex(1);
+        setTimeout(() => setIsSliding(false), SLIDE_MS);
+      } else {
+        setIsSliding(true);
+        setPanelIndex(2);
+        setTimeout(() => setIsSliding(false), SLIDE_MS);
+      }
+      return;
+    }
+
+    // Panel 1: Save follow-up answers, slide to panel 2
+    if (panelIndex === 1) {
+      const answeredFollowUps = followUpQuestions
+        .filter(fq => fq.answer.trim())
+        .map(fq => `Q: ${fq.question}\nA: ${fq.answer}`)
+        .join('\n\n');
+
+      if (answeredFollowUps) {
+        const enrichedContext = `${context}\n\n---\n\n${answeredFollowUps}`;
+        await upsertProfile({ context: enrichedContext });
+      }
+
       setIsSliding(true);
-      setStep(3);
+      setPanelIndex(2);
       setTimeout(() => setIsSliding(false), SLIDE_MS);
       return;
     }
 
-    // step === 3
+    // Panel 2: Save goals
+    if (panelIndex === 2) {
+      const res = await upsertProfile({
+        primary_goal: primaryGoal,
+        current_focus: currentFocus,
+      });
+      if (!res.ok) return alert(res.message);
+      setIsSliding(true);
+      setPanelIndex(3);
+      setTimeout(() => setIsSliding(false), SLIDE_MS);
+      return;
+    }
+
+    // Panel 3: Save current activity
+    if (panelIndex === 3) {
+      const res = await upsertProfile({
+        content_activity: contentActivity,
+        release_status: releaseStatus,
+        stuck_on: stuckOn,
+      });
+      if (!res.ok) return alert(res.message);
+      setIsSliding(true);
+      setPanelIndex(4);
+      setTimeout(() => setIsSliding(false), SLIDE_MS);
+      return;
+    }
+
+    // Panel 4: Finish
+    setIsFinishing(true);
+    
     const res = await upsertProfile({
       strengths,
       weaknesses,
       constraints,
-      current_focus: currentFocus,
       onboarding_completed: true,
       onboarding_completed_at: new Date().toISOString(),
     });
-    if (!res.ok) return alert(res.message);
+    
+    if (!res.ok) {
+      setIsFinishing(false);
+      return alert(res.message);
+    }
 
-    // hard nav so middleware/SSR sees the latest
     window.location.assign("/dashboard");
   }
 
   function handleBack() {
-    if (step === 1) return;
+    if (panelIndex === 0) return;
+    
     setIsSliding(true);
-    setStep((s) => (s === 2 ? 1 : 2));
+    
+    if (panelIndex === 1) {
+      setPanelIndex(0);
+    } else if (panelIndex === 2) {
+      if (hasGeneratedFollowUps && followUpQuestions.length > 0) {
+        setPanelIndex(1);
+      } else {
+        setPanelIndex(0);
+      }
+    } else {
+      setPanelIndex(panelIndex - 1);
+    }
+    
     setTimeout(() => setIsSliding(false), SLIDE_MS);
   }
 
   function handleSkip() {
-    if (step === 1) {
+    if (panelIndex === 0) {
       setIsSliding(true);
-      setStep(2);
+      setPanelIndex(2);
       setTimeout(() => setIsSliding(false), SLIDE_MS);
-    } else if (step === 2) {
+    } else if (panelIndex === 1) {
       setIsSliding(true);
-      setStep(3);
+      setPanelIndex(2);
       setTimeout(() => setIsSliding(false), SLIDE_MS);
-    } else {
+    } else if (panelIndex === 4) {
       window.location.assign("/dashboard");
+    } else {
+      setIsSliding(true);
+      setPanelIndex(panelIndex + 1);
+      setTimeout(() => setIsSliding(false), SLIDE_MS);
     }
+  }
+
+  function updateFollowUpAnswer(index: number, answer: string) {
+    setFollowUpQuestions(prev => 
+      prev.map((fq, i) => i === index ? { ...fq, answer } : fq)
+    );
   }
 
   return (
     <div className="relative min-h-screen w-full bg-black overflow-hidden">
+      {/* Loading Overlay */}
+      {isFinishing && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+          <div className="text-center space-y-4">
+            <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin mx-auto" />
+            <p className="text-sm font-mono tracking-tight text-zinc-400 lowercase">creating your profile...</p>
+          </div>
+        </div>
+      )}
+
       {/* 3D Void Vignette */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -188,50 +318,32 @@ export default function OnboardingClient({
           {/* Slider */}
           <div ref={viewportRef} className="relative overflow-hidden px-[1px]">
             <div
-              className="flex transform-gpu transition-transform duration-[7500ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
+              className="flex transform-gpu transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
               style={{
-                width: viewportW ? viewportW * 3 : "300%",
+                width: viewportW ? viewportW * 5 : "500%",
                 transform: trackTransform,
               }}
             >
-              {/* STEP 1 */}
-              <div className={`shrink-0 px-7 box-border transition-all duration-[900ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
+              {/* PANEL 0 - who you are */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
                 <StepShell
-                  title="tell us about yourself"
-                  description="provide context about your work, style, and goals. this helps blackbox understand your creative direction."
+                  title="who you are"
+                  description="tell us about yourself — your sound, your stage, your creative identity."
                 >
-                  <div className="space-y-4">
-                    <textarea
-                      placeholder="i'm a recording artist focused on..."
-                      value={context}
-                      onChange={(e) => setContext(e.target.value)}
-                      className="min-h-[200px] w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2"
-                    />
-                    <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase">{context.length} characters</p>
-                  </div>
-                </StepShell>
-              </div>
-
-              {/* STEP 2 */}
-              <div className={`shrink-0 px-7 box-border transition-all duration-[900ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
-                <StepShell
-                  title="direction & intent"
-                  description="give us your next target and where you're at. this helps blackbox generate plans that fit how you move."
-                >
-                  <div className="space-y-8">
-                    <FieldBlock label="primary goal (next 90 days)">
-                      <textarea
-                        placeholder='ex: "consistent releases" / "grow tiktok discovery"'
-                        value={primaryGoal}
-                        onChange={(e) => setPrimaryGoal(e.target.value)}
-                        className="min-h-[120px] w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2"
+                  <div className="space-y-7">
+                    <FieldBlock label="about you">
+                      <AutoExpandTextarea
+                        placeholder="i'm a recording artist focused on..."
+                        value={context}
+                        onChange={setContext}
+                        minHeight={120}
+                        maxHeight={280}
                       />
-                      <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase">{primaryGoal.length} characters</p>
                     </FieldBlock>
 
                     <FieldBlock label="genre / sound">
                       <input
-                        placeholder='ex: "dark r&b"'
+                        placeholder='ex: "dark r&b" / "indie pop" / "experimental hip-hop"'
                         value={genreSound}
                         onChange={(e) => setGenreSound(e.target.value)}
                         className="h-11 w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase px-3"
@@ -241,67 +353,189 @@ export default function OnboardingClient({
                     <div className="space-y-4">
                       <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">career stage</label>
                       <div className="flex flex-wrap gap-2">
-                        <StagePill active={careerStage === "early"} onClick={() => setCareerStage("early")}>
-                          early
-                        </StagePill>
-                        <StagePill active={careerStage === "building"} onClick={() => setCareerStage("building")}>
-                          building
-                        </StagePill>
-                        <StagePill active={careerStage === "momentum"} onClick={() => setCareerStage("momentum")}>
-                          momentum
-                        </StagePill>
-                        <StagePill active={careerStage === "breakout"} onClick={() => setCareerStage("breakout")}>
-                          breakout
-                        </StagePill>
-                        <StagePill active={careerStage === "pro"} onClick={() => setCareerStage("pro")}>
-                          pro
-                        </StagePill>
+                        <StagePill active={careerStage === "early"} onClick={() => setCareerStage("early")}>early</StagePill>
+                        <StagePill active={careerStage === "building"} onClick={() => setCareerStage("building")}>building</StagePill>
+                        <StagePill active={careerStage === "momentum"} onClick={() => setCareerStage("momentum")}>momentum</StagePill>
+                        <StagePill active={careerStage === "breakout"} onClick={() => setCareerStage("breakout")}>breakout</StagePill>
+                        <StagePill active={careerStage === "pro"} onClick={() => setCareerStage("pro")}>pro</StagePill>
                       </div>
                     </div>
                   </div>
                 </StepShell>
               </div>
 
-              {/* STEP 3 */}
-              <div className={`shrink-0 px-7 box-border transition-all duration-[900ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
+              {/* PANEL 1 - follow-ups */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
                 <StepShell
-                  title="how you move"
-                  description="this is where blackbox starts learning your patterns — strengths, friction, and constraints."
+                  title="who you are"
+                  description="a few quick follow-ups based on what you shared."
+                >
+                  <div className="space-y-6">
+                    {followUpQuestions.map((fq, index) => (
+                      <FieldBlock key={index} label={fq.question}>
+                        <input
+                          placeholder="your answer..."
+                          value={fq.answer}
+                          onChange={(e) => updateFollowUpAnswer(index, e.target.value)}
+                          className="h-11 w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase px-3"
+                        />
+                      </FieldBlock>
+                    ))}
+                    
+                    <p className="text-xs font-mono tracking-tight text-zinc-600 lowercase pt-2">
+                      these help blackbox understand your situation better.
+                    </p>
+                  </div>
+                </StepShell>
+              </div>
+
+              {/* PANEL 2 - where you're headed */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
+                <StepShell
+                  title="where you're headed"
+                  description="what are you working toward right now?"
                 >
                   <div className="space-y-7">
-                    <FieldBlock label="strengths (what you do naturally)">
-                      <textarea
-                        placeholder='ex: "making music consistently, visuals, moody branding"'
-                        value={strengths}
-                        onChange={(e) => setStrengths(e.target.value)}
-                        className="min-h-[110px] w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2"
-                      />
-                    </FieldBlock>
-
-                    <FieldBlock label="weaknesses (what slows you down)">
-                      <textarea
-                        placeholder='ex: "posting consistency, outreach, overthinking"'
-                        value={weaknesses}
-                        onChange={(e) => setWeaknesses(e.target.value)}
-                        className="min-h-[110px] w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2"
-                      />
-                    </FieldBlock>
-
-                    <FieldBlock label="constraints (time/money/energy)">
-                      <textarea
-                        placeholder='ex: "2 hours/day, low budget, i burn out if i post daily"'
-                        value={constraints}
-                        onChange={(e) => setConstraints(e.target.value)}
-                        className="min-h-[110px] w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2"
+                    <FieldBlock label="primary goal (next 90 days)">
+                      <AutoExpandTextarea
+                        placeholder='ex: "reach 10k streams on my next release" / "build consistent content rhythm"'
+                        value={primaryGoal}
+                        onChange={setPrimaryGoal}
+                        minHeight={80}
+                        maxHeight={180}
                       />
                     </FieldBlock>
 
                     <FieldBlock label="current focus (next 30 days)">
-                      <input
-                        placeholder='ex: "release idea 001 + build tiktok discovery"'
+                      <AutoExpandTextarea
+                        placeholder='ex: "finish and release idea 001" / "grow tiktok presence"'
                         value={currentFocus}
-                        onChange={(e) => setCurrentFocus(e.target.value)}
-                        className="h-11 w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase px-3"
+                        onChange={setCurrentFocus}
+                        minHeight={60}
+                        maxHeight={140}
+                      />
+                    </FieldBlock>
+                  </div>
+                </StepShell>
+              </div>
+
+              {/* PANEL 3 - what you're doing now (NEW STRUCTURED) */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
+                <StepShell
+                  title="what you're doing now"
+                  description="this helps blackbox know where to start — not what you want to do, but what you're actually doing."
+                >
+                  <div className="space-y-8">
+                    {/* Content Activity */}
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">content activity</label>
+                      <div className="flex flex-wrap gap-2">
+                        <ActivityPill 
+                          active={contentActivity === "regular"} 
+                          onClick={() => setContentActivity("regular")}
+                        >
+                          i post regularly (3+/week)
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={contentActivity === "sometimes"} 
+                          onClick={() => setContentActivity("sometimes")}
+                        >
+                          i post sometimes
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={contentActivity === "rarely"} 
+                          onClick={() => setContentActivity("rarely")}
+                        >
+                          i rarely post
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={contentActivity === "never"} 
+                          onClick={() => setContentActivity("never")}
+                        >
+                          i don't post yet
+                        </ActivityPill>
+                      </div>
+                    </div>
+
+                    {/* Release Status */}
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">release status</label>
+                      <div className="flex flex-wrap gap-2">
+                        <ActivityPill 
+                          active={releaseStatus === "regular"} 
+                          onClick={() => setReleaseStatus("regular")}
+                        >
+                          i release regularly
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={releaseStatus === "few"} 
+                          onClick={() => setReleaseStatus("few")}
+                        >
+                          i've released a few things
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={releaseStatus === "unreleased"} 
+                          onClick={() => setReleaseStatus("unreleased")}
+                        >
+                          i have unreleased music
+                        </ActivityPill>
+                        <ActivityPill 
+                          active={releaseStatus === "first"} 
+                          onClick={() => setReleaseStatus("first")}
+                        >
+                          working on first release
+                        </ActivityPill>
+                      </div>
+                    </div>
+
+                    {/* Where stuck */}
+                    <FieldBlock label="where do you feel stuck?">
+                      <AutoExpandTextarea
+                        placeholder='ex: "i make content but never post it" / "i post but get no engagement" / "i don't know what to make"'
+                        value={stuckOn}
+                        onChange={setStuckOn}
+                        minHeight={70}
+                        maxHeight={140}
+                      />
+                    </FieldBlock>
+                  </div>
+                </StepShell>
+              </div>
+
+              {/* PANEL 4 - how you work */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
+                <StepShell
+                  title="how you work"
+                  description="what comes naturally? what slows you down? what are your real constraints?"
+                >
+                  <div className="space-y-7">
+                    <FieldBlock label="strengths">
+                      <AutoExpandTextarea
+                        placeholder='ex: "making music consistently, visuals, moody branding"'
+                        value={strengths}
+                        onChange={setStrengths}
+                        minHeight={70}
+                        maxHeight={140}
+                      />
+                    </FieldBlock>
+
+                    <FieldBlock label="weaknesses">
+                      <AutoExpandTextarea
+                        placeholder='ex: "posting consistency, outreach, overthinking my process"'
+                        value={weaknesses}
+                        onChange={setWeaknesses}
+                        minHeight={70}
+                        maxHeight={140}
+                      />
+                    </FieldBlock>
+
+                    <FieldBlock label="constraints">
+                      <AutoExpandTextarea
+                        placeholder='ex: "2 hours a day, low budget, burn out if i try to do too much at once"'
+                        value={constraints}
+                        onChange={setConstraints}
+                        minHeight={70}
+                        maxHeight={140}
                       />
                     </FieldBlock>
                   </div>
@@ -317,7 +551,7 @@ export default function OnboardingClient({
               onClick={handleBack}
               variant="ghost"
               className="h-11 px-3 text-zinc-700 hover:text-zinc-500 hover:bg-transparent font-mono text-sm tracking-tight lowercase"
-              disabled={step === 1}
+              disabled={panelIndex === 0}
             >
               back
             </Button>
@@ -326,9 +560,10 @@ export default function OnboardingClient({
               type="button"
               onClick={handleContinue}
               variant="outline"
-              className="flex-1 h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight uppercase"
+              disabled={isFinishing || isGeneratingFollowUps}
+              className="flex-1 h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {step === 3 ? "finish" : "continue"}
+              {isFinishing ? "finishing..." : isGeneratingFollowUps ? "thinking..." : panelIndex === 4 ? "finish" : "continue"}
             </Button>
 
             <Button
@@ -343,9 +578,10 @@ export default function OnboardingClient({
 
           {/* Progress */}
           <div className="flex items-center justify-center gap-2">
-            <div className={`h-1 w-8 rounded-full ${step === 1 ? "bg-zinc-700" : "bg-zinc-800"}`} />
-            <div className={`h-1 w-8 rounded-full ${step === 2 ? "bg-zinc-700" : "bg-zinc-800"}`} />
-            <div className={`h-1 w-8 rounded-full ${step === 3 ? "bg-zinc-700" : "bg-zinc-800"}`} />
+            <div className={`h-1 w-8 rounded-full ${panelIndex <= 1 ? "bg-zinc-700" : "bg-zinc-800"}`} />
+            <div className={`h-1 w-8 rounded-full ${panelIndex === 2 ? "bg-zinc-700" : "bg-zinc-800"}`} />
+            <div className={`h-1 w-8 rounded-full ${panelIndex === 3 ? "bg-zinc-700" : "bg-zinc-800"}`} />
+            <div className={`h-1 w-8 rounded-full ${panelIndex === 4 ? "bg-zinc-700" : "bg-zinc-800"}`} />
           </div>
         </div>
       </div>
@@ -382,6 +618,48 @@ function FieldBlock({ label, children }: { label: string; children: React.ReactN
   );
 }
 
+function AutoExpandTextarea({
+  placeholder,
+  value,
+  onChange,
+  minHeight = 80,
+  maxHeight = 200,
+}: {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  minHeight?: number;
+  maxHeight?: number;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    textarea.style.height = `${minHeight}px`;
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+    textarea.style.height = `${newHeight}px`;
+  }, [minHeight, maxHeight]);
+
+  useEffect(() => {
+    adjustHeight();
+  }, [value, adjustHeight]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => {
+        onChange(e.target.value);
+      }}
+      style={{ minHeight: `${minHeight}px`, maxHeight: `${maxHeight}px` }}
+      className="w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase resize-none px-3 py-2 overflow-y-auto transition-[height] duration-150 ease-out"
+    />
+  );
+}
+
 function StagePill({
   active,
   onClick,
@@ -397,6 +675,31 @@ function StagePill({
       onClick={onClick}
       className={[
         "h-10 px-4 rounded-md border transition-colors font-mono text-sm tracking-tight lowercase",
+        active
+          ? "bg-zinc-900/40 border-zinc-600 text-white"
+          : "bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ActivityPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "px-4 py-2.5 rounded-md border transition-colors font-mono text-xs tracking-tight lowercase",
         active
           ? "bg-zinc-900/40 border-zinc-600 text-white"
           : "bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700",

@@ -8,13 +8,17 @@ type TaskGuideModalProps = {
   task: PriorityTask
 }
 
+// Typography constants
+const bodyText = "font-mono text-[13px] font-normal tracking-normal leading-[1.7] text-zinc-300"
+const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
+
 export function TaskGuideModal({ task }: TaskGuideModalProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   // Safety check - if no guide, don't render interactive modal
   if (!task.guide) {
     return (
-      <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+      <p className="font-mono text-[13px] font-semibold text-white">
         {task.title}
       </p>
     )
@@ -27,12 +31,12 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
         onClick={() => setIsOpen(true)}
         className="text-left w-full group"
       >
-        <p className="font-mono text-[14px] font-normal tracking-wider uppercase text-white group-hover:underline decoration-zinc-600 underline-offset-4 transition-all duration-150">
+        <p className="font-mono text-[13px] font-semibold text-white group-hover:underline decoration-zinc-600 underline-offset-4 transition-all duration-150">
           {task.title}
         </p>
       </button>
 
-      {/* Modal overlay - rendered via portal to escape parent stacking context */}
+      {/* Modal overlay */}
       {isOpen && typeof document !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -48,25 +52,15 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
           >
             {/* Header */}
             <div className="flex items-start justify-between p-6 border-b border-zinc-800">
-              <h2 className="font-mono text-[14px] font-normal tracking-wider uppercase text-white">
+              <h2 className="font-mono text-[14px] font-semibold text-white">
                 {task.title}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -75,28 +69,20 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
             <div className="p-6 space-y-6">
               {/* What */}
               <div className="space-y-2">
-                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500">
-                  what you're doing
-                </h3>
-                <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
-                  {task.guide.what}
-                </p>
+                <h3 className={labelStyle}>What You're Doing</h3>
+                <p className={bodyText}>{task.guide.what}</p>
               </div>
 
               {/* How */}
               <div className="space-y-3">
-                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500">
-                  how to do it
-                </h3>
+                <h3 className={labelStyle}>How To Do It</h3>
                 <ol className="space-y-3">
                   {task.guide.how.map((step, i) => (
                     <li key={i} className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-mono text-zinc-400">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold text-zinc-400">
                         {i + 1}
                       </span>
-                      <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200 pt-0.5">
-                        {step}
-                      </p>
+                      <p className={`${bodyText} pt-0.5`}>{step}</p>
                     </li>
                   ))}
                 </ol>
@@ -104,20 +90,15 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
 
               {/* Why */}
               <div className="space-y-2">
-                <h3 className="font-mono text-[11px] font-medium tracking-[0.25em] uppercase text-zinc-500">
-                  why this works for you
-                </h3>
-                <p className="font-mono text-[14px] font-light tracking-[0.05em] uppercase leading-[1.7] text-zinc-200">
-                  {task.guide.why}
-                </p>
+                <h3 className={labelStyle}>Why This Works For You</h3>
+                <p className={bodyText}>{task.guide.why}</p>
               </div>
 
               {/* Guardrail */}
               <div className="pt-4 border-t border-zinc-800">
                 <div className="bg-zinc-800/50 border border-zinc-700 rounded p-4">
-                  <p className="font-mono text-[12px] font-light tracking-[0.05em] uppercase text-zinc-400">
-                    <span className="text-zinc-500">guardrail:</span> {task.guardrail}
-                  </p>
+                  <span className={labelStyle}>Guardrail</span>
+                  <p className={`${bodyText} text-zinc-400`}>{task.guardrail}</p>
                 </div>
               </div>
             </div>
@@ -126,9 +107,9 @@ export function TaskGuideModal({ task }: TaskGuideModalProps) {
             <div className="p-6 border-t border-zinc-800">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full py-3 px-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-white transition-colors"
+                className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors"
               >
-                close
+                Close
               </button>
             </div>
           </div>

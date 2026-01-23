@@ -1,6 +1,6 @@
 // lib/dashboard/intelligence.ts
-// Intelligent dashboard service - REFINED VERSION
-// Now includes: task generation + next actions
+// Intelligent dashboard service
+// Updated: 2026-01-14 - Removed constraint from AI output (use profile.constraints)
 
 import type { Profile } from '@/lib/profile/profile'
 import type { DashboardIntelligence, PriorityTask } from '@/lib/intelligence/interpret'
@@ -12,7 +12,6 @@ export type CompleteDashboardIntelligence = {
   identitySummary: string
   edge: string
   friction: string
-  constraint: string
   strategicContext: string[]
   priorityTask: PriorityTask
   nextActions: string[]
@@ -26,10 +25,10 @@ export type CompleteDashboardIntelligence = {
 /**
  * Get complete intelligent dashboard for user
  * 
- * Now includes:
- * - Concise interpretations (reduced verbosity)
- * - Intelligent priority task (personalized, not generic)
- * - Next actions (what comes after priority task)
+ * Includes:
+ * - Concise interpretations
+ * - Intelligent priority task (personalized)
+ * - Next actions
  */
 export async function getCompleteDashboardIntelligence(
   userId: string,
@@ -40,14 +39,12 @@ export async function getCompleteDashboardIntelligence(
     const cached = await getCachedInterpretation(userId, profile)
     
     if (cached && cached.identity_summary && cached.priority_task_title) {
-      // Valid complete cache exists (with task)
       console.log('[Dashboard Intelligence] Using complete cached interpretation')
       return {
         currentRead: cached.current_read,
         identitySummary: cached.identity_summary,
         edge: cached.edge_interpretation,
         friction: cached.friction_interpretation,
-        constraint: cached.constraint_interpretation,
         strategicContext: cached.strategic_context,
         priorityTask: {
           title: cached.priority_task_title,
@@ -64,11 +61,11 @@ export async function getCompleteDashboardIntelligence(
       }
     }
 
-    // Cache miss, stale, or incomplete - generate new
+    // Cache miss - generate new
     console.log('[Dashboard Intelligence] Generating complete dashboard intelligence')
     const result = await generateDashboardIntelligence(profile)
 
-    // Cache the complete result
+    // Cache the result
     await cacheDashboardIntelligence(
       userId,
       profile,
@@ -87,31 +84,25 @@ export async function getCompleteDashboardIntelligence(
   } catch (error) {
     console.error('[Dashboard Intelligence] Error getting complete intelligence:', error)
     
-    // Graceful fallback
     return buildFallbackIntelligence(profile)
   }
 }
 
 /**
  * Fallback dashboard intelligence if API fails
- * 
- * Uses profile data to create basic interpretations
- * Better than showing nothing, worse than Claude
  */
 function buildFallbackIntelligence(profile: Profile): CompleteDashboardIntelligence {
   const stage = profile.career_stage || 'building'
   const goal = profile.primary_goal || 'growing your career'
-  const constraint = profile.constraints || 'limited time'
   const focus = profile.current_focus || 'next steps'
 
   return {
-    currentRead: `You're at the ${stage} stage, focused on ${goal}. Working within ${constraint}. BLACKBOX is still learning your patterns - check back soon for deeper strategic insights.`,
+    currentRead: `You're at the ${stage} stage, focused on ${goal}. BLACKBOX is still learning your patterns - check back soon for deeper strategic insights.`,
     identitySummary: profile.context 
       ? profile.context.split('.')[0] + '.' 
       : 'Independent artist building their career.',
     edge: profile.strengths || 'Creative consistency',
     friction: profile.weaknesses || 'Resource constraints',
-    constraint: constraint,
     strategicContext: [
       `Career stage: ${stage}`,
       `Primary goal: ${goal}`,

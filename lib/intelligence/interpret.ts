@@ -1,11 +1,12 @@
 // lib/intelligence/interpret.ts
-// Main interpretation service - REFINED FOR BREVITY
-// Expanded: 2026-01-02 - Includes priority task + next actions
+// Main interpretation service with routing-based task generation
 
 import type { Profile } from '@/lib/profile/profile'
 import { buildDashboardIntelligencePrompt } from './prompts'
 import { generateWithClaude, calculateCost } from './claude'
 import { validateCurrentRead } from './validate'
+import { getBehavioralHistory, formatHistoryForPrompt, type BehavioralHistory } from './history'
+import { routeTask } from './routing'
 
 export type TaskGuide = {
   what: string
@@ -25,7 +26,6 @@ export type DashboardIntelligence = {
   identitySummary: string
   edge: string
   friction: string
-  constraint: string
   strategicContext: string[]
   priorityTask: PriorityTask
   nextActions: string[]
@@ -39,59 +39,86 @@ export type InterpretationResult = {
   }
   cost: number
   valid: boolean
+  taskRoute?: string // What type of task was routed
 }
 
 /**
  * Generate complete dashboard intelligence for an artist's profile
  * 
- * Now includes:
- * - Concise interpretations (reduced verbosity)
- * - Intelligent priority task (personalized, not generic)
- * - Next actions (what comes after priority task)
+ * Now uses ROUTING LOGIC:
+ * - Code determines what TYPE of task to generate
+ * - AI fills in the specifics personalized to the artist
  */
 export async function generateDashboardIntelligence(
   profile: Profile,
   options: {
     maxRetries?: number
+    includeBehavioralHistory?: boolean
   } = {}
 ): Promise<InterpretationResult> {
   const maxRetries = options.maxRetries || 2
+  const includeBehavioralHistory = options.includeBehavioralHistory !== false
   let attempt = 0
+
+  // Fetch behavioral history for routing + learning
+  let history: BehavioralHistory | undefined
+  let formattedHistory: string | undefined
+  
+  if (includeBehavioralHistory && profile.id) {
+    try {
+      history = await getBehavioralHistory(profile.id)
+      if (history.recentTasks.length > 0) {
+        formattedHistory = formatHistoryForPrompt(history)
+      }
+    } catch (error) {
+      console.warn('[Intelligence] Failed to fetch behavioral history:', error)
+    }
+  }
+
+  // Route the task BEFORE generating
+  const route = history ? routeTask(profile, history) : routeTask(profile, {
+    recentTasks: [],
+    taskStats: { completed: 0, skipped: 0, completionRate: 0 },
+    recentReflections: [],
+    patterns: { completedTypes: [], skippedTypes: [] }
+  })
+
+  console.log('[Intelligence] Task routed:', {
+    type: route.type,
+    reason: route.reason,
+    contentActivity: route.context.contentActivity,
+    releaseStatus: route.context.releaseStatus,
+    lastCompletedTask: route.context.lastCompletedTask
+  })
 
   while (attempt < maxRetries) {
     attempt++
     
-    console.log(`[Intelligence] Generating dashboard intelligence (attempt ${attempt}/${maxRetries})`, {
+    console.log(`[Intelligence] Generating (attempt ${attempt}/${maxRetries})`, {
       userId: profile.id,
-      email: profile.email,
+      taskType: route.type,
+      hasBehavioralHistory: !!formattedHistory
     })
 
-    // Build the system prompt
-    const systemPrompt = buildDashboardIntelligencePrompt(profile)
+    // Pass both formatted history AND full history object for routing
+    const systemPrompt = buildDashboardIntelligencePrompt(profile, formattedHistory, history)
 
     try {
-      // Call Claude API
       const { text, usage } = await generateWithClaude(systemPrompt, {
-        maxTokens: 1500, // Increased for task guide
-        temperature: 1.0,
+        maxTokens: 1000,
+        temperature: 0.4,
       })
 
-      // Parse JSON response
       let intelligence: DashboardIntelligence
       
       try {
-        // Clean response (remove markdown code blocks if present)
         const cleanedText = text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '')
         intelligence = JSON.parse(cleanedText)
       } catch (parseError) {
         console.error('[Intelligence] JSON parse error:', parseError)
         console.error('[Intelligence] Raw response:', text.substring(0, 500))
         
-        if (attempt < maxRetries) {
-          console.log('[Intelligence] Retrying due to parse error...')
-          continue
-        }
-        
+        if (attempt < maxRetries) continue
         throw new Error(`Failed to parse JSON response: ${parseError}`)
       }
 
@@ -101,7 +128,6 @@ export async function generateDashboardIntelligence(
         !intelligence.identitySummary ||
         !intelligence.edge ||
         !intelligence.friction ||
-        !intelligence.constraint ||
         !Array.isArray(intelligence.strategicContext) ||
         !intelligence.priorityTask ||
         !intelligence.priorityTask.title ||
@@ -114,38 +140,24 @@ export async function generateDashboardIntelligence(
         !Array.isArray(intelligence.nextActions)
       ) {
         console.error('[Intelligence] Invalid structure:', intelligence)
-        
-        if (attempt < maxRetries) {
-          console.log('[Intelligence] Retrying due to invalid structure...')
-          continue
-        }
-        
+        if (attempt < maxRetries) continue
         throw new Error('Invalid intelligence structure returned')
       }
 
-      // Validate current read quality
       const valid = validateCurrentRead(intelligence.currentRead)
 
       if (!valid && attempt < maxRetries) {
-        console.warn('[Intelligence] Validation failed, retrying...', {
-          attempt,
-          maxRetries,
-          currentReadPreview: intelligence.currentRead.substring(0, 100) + '...',
-        })
+        console.warn('[Intelligence] Validation failed, retrying...')
         continue
       }
 
-      // Calculate cost
       const cost = calculateCost(usage)
 
-      console.log('[Intelligence] Dashboard intelligence generated', {
+      console.log('[Intelligence] Generated successfully', {
         valid,
         cost: `$${cost.toFixed(4)}`,
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-        currentReadLength: intelligence.currentRead.length,
+        taskType: route.type,
         taskTitle: intelligence.priorityTask.title,
-        nextActionsCount: intelligence.nextActions.length,
       })
 
       return {
@@ -153,41 +165,30 @@ export async function generateDashboardIntelligence(
         usage,
         cost,
         valid,
+        taskRoute: route.type,
       }
     } catch (error) {
-      console.error('[Intelligence] Error generating dashboard intelligence:', error)
-      
-      // If last attempt, throw
-      if (attempt >= maxRetries) {
-        throw error
-      }
-      
-      // Otherwise retry
-      console.log('[Intelligence] Retrying after error...')
+      console.error('[Intelligence] Error:', error)
+      if (attempt >= maxRetries) throw error
       continue
     }
   }
 
-  // Should never reach here due to throw above, but TypeScript needs this
   throw new Error('Failed to generate dashboard intelligence after max retries')
 }
 
 /**
  * DEPRECATED: Old single Current Read generation
- * Kept for backwards compatibility during migration
  */
 export async function generateCurrentRead(
   profile: Profile,
-  options: {
-    maxRetries?: number
-  } = {}
+  options: { maxRetries?: number } = {}
 ): Promise<{
   currentRead: string
   usage: { inputTokens: number; outputTokens: number }
   cost: number
   valid: boolean
 }> {
-  // Call new function and extract just current read
   const result = await generateDashboardIntelligence(profile, options)
   
   return {
@@ -196,21 +197,4 @@ export async function generateCurrentRead(
     cost: result.cost,
     valid: result.valid,
   }
-}
-
-/**
- * Generate task (Phase 2 - not yet implemented)
- * Placeholder for future task generation logic
- */
-export async function generateTask(
-  profile: Profile,
-  currentRead: string
-): Promise<{
-  title: string
-  reasoning: string
-  guardrail: string
-}> {
-  // TODO: Implement task generation
-  // For now, return placeholder
-  throw new Error('Task generation not yet implemented (Phase 2)')
 }

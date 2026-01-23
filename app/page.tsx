@@ -139,10 +139,6 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* tiny debug line */}
-          <p className="text-[10px] text-center font-mono text-zinc-700 lowercase">
-            redirecting to: {redirectTo}
-          </p>
         </div>
       </div>
     </div>

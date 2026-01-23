@@ -397,6 +397,30 @@ Small text: 300 weight, 12px, 0.05em letter-spacing, italic for empty states,
 
 ---
 
+2026-01-12-ONBOARD-009 — Add Step 4 "Current State" to Capture Where User Actually Is
+Decision: Onboarding will have 4 steps (not 3). New Step 4 captures user's current state relative to their primary goal.
+Rationale: Current onboarding captures intent (where they want to go) but not current reality (where they are now). Without current state, intelligence generation must guess, leading to generic or misaligned tasks. Example: "Reach 10k streams" could mean song unreleased vs. released with 2k streams—completely different starting positions requiring different tasks.
+Alternatives Considered:
+
+Ship V1 without current state, add later: rejected (breaks "feels like it gets me" success criteria)
+Add conversational/chat clarification system: rejected (violates Master Context, out of V1 scope, aesthetic break)
+Clarifying prompts in dashboard: deferred to post-V1 (more elegant but too complex for 2-week timeline)
+
+Implementation:
+
+Add current_state TEXT field to profiles table
+Add Step 4 to onboarding flow: "where you are right now"
+Prompt: "Describe your current state in 2-3 sentences. What's done? What's next? What's unclear?"
+Update intelligence prompt to include current_state context
+
+Tradeoffs:
+
+Longer onboarding (4 steps vs 3) - acceptable tradeoff for trust
+Static snapshot (state changes over time) - accept for V1, can be updated via Edit Profile
+
+Impact on V1: Intelligence can generate grounded, reality-based tasks instead of guessing. Essential for "this gets me" moment.
+
+---
 
 
 # Backfill Notes (What exists but is NOT yet locked as a decision)

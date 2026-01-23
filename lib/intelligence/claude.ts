@@ -90,9 +90,9 @@ export async function generateWithClaude(
 
   try {
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: options.maxTokens || 1000,
-      temperature: options.temperature || 1.0,
+      temperature: options.temperature ?? 0.7,
       messages: [
         {
           role: 'user',
@@ -132,15 +132,15 @@ export async function generateWithClaude(
 /**
  * Calculate cost for a given token usage
  * 
- * Pricing (Sonnet 4):
- * - Input: $3 per 1M tokens
- * - Output: $15 per 1M tokens
+ * Pricing (Claude 3.5 Haiku):
+ * - Input: $0.80 per 1M tokens
+ * - Output: $4 per 1M tokens
  */
 export function calculateCost(usage: {
   inputTokens: number
   outputTokens: number
 }): number {
-  const inputCost = (usage.inputTokens / 1_000_000) * 3
-  const outputCost = (usage.outputTokens / 1_000_000) * 15
+  const inputCost = (usage.inputTokens / 1_000_000) * 0.80
+  const outputCost = (usage.outputTokens / 1_000_000) * 4
   return inputCost + outputCost
 }

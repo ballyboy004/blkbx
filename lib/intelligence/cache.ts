@@ -1,15 +1,18 @@
 // lib/intelligence/cache.ts
 // Caching layer for complete dashboard intelligence
-// Design: BLACKBOX_V1_INTELLIGENCE_LAYER_DESIGN.md
-// Expanded: 2026-01-02 - Full dashboard intelligence
+// Updated: 2026-01-21 - Added prompt version for cache invalidation on prompt changes
 
 import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/profile/profile'
 import type { DashboardIntelligence } from './interpret'
 import crypto from 'crypto'
 
+// IMPORTANT: Increment this when prompts change significantly
+// This forces cache invalidation for all users
+const PROMPT_VERSION = 5
+
 /**
- * Cached interpretation structure (expanded)
+ * Cached interpretation structure
  */
 export type CachedInterpretation = {
   id: string
@@ -18,8 +21,8 @@ export type CachedInterpretation = {
   identity_summary: string
   edge_interpretation: string
   friction_interpretation: string
-  constraint_interpretation: string
-  strategic_context: string[] // JSONB in database
+  constraint_interpretation?: string // Legacy field, may not be used
+  strategic_context: string[]
   priority_task_title: string
   priority_task_reasoning: string
   priority_task_guardrail: string
@@ -27,27 +30,22 @@ export type CachedInterpretation = {
     what: string
     how: string[]
     why: string
-  } // JSONB in database
-  next_actions: string[] // JSONB in database
+  }
+  next_actions: string[]
   profile_version_hash: string
   generated_at: string
   input_tokens: number
   output_tokens: number
   cost_usd: number
+  // Strategic input fields
+  strategic_input_used?: string
+  strategic_question_used?: string
+  // Prompt version for invalidation
+  prompt_version?: number
 }
 
 /**
  * Generate MD5 hash of profile data for cache invalidation
- * 
- * Hash includes all onboarding fields that affect interpretation:
- * - context
- * - primary_goal
- * - genre_sound
- * - career_stage
- * - strengths
- * - weaknesses
- * - constraints
- * - current_focus
  */
 export function generateProfileHash(profile: Profile): string {
   const relevantFields = {
@@ -59,6 +57,11 @@ export function generateProfileHash(profile: Profile): string {
     weaknesses: profile.weaknesses || '',
     constraints: profile.constraints || '',
     current_focus: profile.current_focus || '',
+    current_state: profile.current_state || '',
+    // NEW fields for routing
+    content_activity: profile.content_activity || '',
+    release_status: profile.release_status || '',
+    stuck_on: profile.stuck_on || '',
   }
 
   const dataString = JSON.stringify(relevantFields)
@@ -67,22 +70,25 @@ export function generateProfileHash(profile: Profile): string {
 
 /**
  * Check if interpretation is stale
- * 
- * Stale if:
- * - Generated >7 days ago
- * - Profile hash has changed
  */
 export function isInterpretationStale(
   interpretation: CachedInterpretation,
   currentProfileHash: string
 ): boolean {
-  // Check profile version mismatch
+  // Check prompt version - invalidate if prompts were updated
+  if (!interpretation.prompt_version || interpretation.prompt_version < PROMPT_VERSION) {
+    console.log('[Intelligence] Interpretation stale: prompt version outdated', {
+      cached: interpretation.prompt_version || 'none',
+      current: PROMPT_VERSION
+    })
+    return true
+  }
+
   if (interpretation.profile_version_hash !== currentProfileHash) {
     console.log('[Intelligence] Interpretation stale: profile changed')
     return true
   }
 
-  // Check age (7 days)
   const generatedAt = new Date(interpretation.generated_at)
   const now = new Date()
   const ageInDays = (now.getTime() - generatedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -97,10 +103,6 @@ export function isInterpretationStale(
 
 /**
  * Get cached interpretation for a user
- * 
- * Returns null if:
- * - No cache exists
- * - Cache is stale (profile changed or >7 days old)
  */
 export async function getCachedInterpretation(
   userId: string,
@@ -128,7 +130,6 @@ export async function getCachedInterpretation(
 
   const cached = data as CachedInterpretation
 
-  // Check if stale
   const currentHash = generateProfileHash(currentProfile)
   if (isInterpretationStale(cached, currentHash)) {
     return null
@@ -137,6 +138,7 @@ export async function getCachedInterpretation(
   console.log('[Intelligence] Using cached interpretation', {
     generatedAt: cached.generated_at,
     ageInDays: ((Date.now() - new Date(cached.generated_at).getTime()) / (1000 * 60 * 60 * 24)).toFixed(1),
+    promptVersion: cached.prompt_version,
   })
 
   return cached
@@ -144,8 +146,6 @@ export async function getCachedInterpretation(
 
 /**
  * Save complete dashboard intelligence to cache
- * 
- * Upserts on user_id (replaces existing cache)
  */
 export async function cacheDashboardIntelligence(
   userId: string,
@@ -170,7 +170,7 @@ export async function cacheDashboardIntelligence(
         identity_summary: intelligence.identitySummary,
         edge_interpretation: intelligence.edge,
         friction_interpretation: intelligence.friction,
-        constraint_interpretation: intelligence.constraint,
+        constraint_interpretation: '', // Legacy field - constraints come from profile now
         strategic_context: intelligence.strategicContext,
         priority_task_title: intelligence.priorityTask.title,
         priority_task_reasoning: intelligence.priorityTask.reasoning,
@@ -178,6 +178,7 @@ export async function cacheDashboardIntelligence(
         priority_task_guide: intelligence.priorityTask.guide,
         next_actions: intelligence.nextActions,
         profile_version_hash: profileHash,
+        prompt_version: PROMPT_VERSION,
         generated_at: new Date().toISOString(),
         input_tokens: usage.inputTokens,
         output_tokens: usage.outputTokens,
@@ -195,6 +196,7 @@ export async function cacheDashboardIntelligence(
   console.log('[Intelligence] Dashboard intelligence cached successfully', {
     userId,
     profileHash,
+    promptVersion: PROMPT_VERSION,
     cost: `$${cost.toFixed(4)}`,
   })
 }
@@ -214,8 +216,6 @@ export async function cacheInterpretation(
     cost: number
   }
 ): Promise<void> {
-  // For backwards compatibility during migration
-  // This should not be used for new code
   const supabase = await createClient()
   const profileHash = generateProfileHash(profile)
 
@@ -226,6 +226,7 @@ export async function cacheInterpretation(
         user_id: userId,
         current_read: interpretation.currentRead,
         profile_version_hash: profileHash,
+        prompt_version: PROMPT_VERSION,
         generated_at: new Date().toISOString(),
         input_tokens: interpretation.usage.inputTokens,
         output_tokens: interpretation.usage.outputTokens,
@@ -268,6 +269,5 @@ export async function logCost(
 
   if (error) {
     console.error('[Intelligence] Error logging cost:', error)
-    // Don't throw - this is optional analytics
   }
 }

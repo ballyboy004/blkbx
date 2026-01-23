@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, onboarding_completed"
+      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, content_activity, release_status, stuck_on, onboarding_completed"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -37,6 +37,9 @@ export default async function OnboardingPage() {
         weaknesses: profile?.weaknesses ?? "",
         constraints: profile?.constraints ?? "",
         current_focus: profile?.current_focus ?? "",
+        content_activity: (profile?.content_activity as any) ?? "sometimes",
+        release_status: (profile?.release_status as any) ?? "few",
+        stuck_on: profile?.stuck_on ?? "",
       }}
     />
   );
