@@ -6,13 +6,9 @@ import { TaskGuideModal } from "@/components/dashboard/TaskGuideModal"
 import { completeTask, skipTask } from '@/app/dashboard/actions/tasks'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
 
-// Body text: clean, readable
+// Typography
 const bodyText = "font-mono text-[14px] font-normal tracking-normal leading-[1.7] text-zinc-300"
-
-// Labels: bolder, larger than body
 const labelStyle = "font-mono text-[12px] font-bold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
-
-// Card headers
 const headerStyle = "font-mono text-[13px] font-bold tracking-[0.2em] uppercase text-zinc-500"
 
 type RecentTask = {
@@ -21,6 +17,8 @@ type RecentTask = {
   status: 'done' | 'skipped'
   created_at: string
   reflection?: string
+  reasoning?: string
+  guardrail?: string
 }
 
 interface TodayCardProps {
@@ -40,61 +38,55 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   const [reflection, setReflection] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // Guide modal state for reflection page
+  // Modal states
   const [showGuideModal, setShowGuideModal] = useState(false)
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false)
+  const [selectedPastTask, setSelectedPastTask] = useState<RecentTask | null>(null)
   
-  // Recent tasks visibility - default to expanded if there are tasks
-  const [showRecentTasks, setShowRecentTasks] = useState(true)
-  
-  // Store last reflection to pass with refresh request
   const lastReflectionRef = useRef<string>('')
-  
-  // Track if prefetch has been triggered for current task
   const prefetchTriggeredRef = useRef<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const isLoading = isSkipping || isRefreshing || isSubmitting
   const charLimit = 280
 
-  // Trigger prefetch when task is displayed
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowHistoryDropdown(false)
+      }
+    }
+    if (showHistoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showHistoryDropdown])
+
+  // Prefetch
   useEffect(() => {
     if (task?.title && prefetchTriggeredRef.current !== task.title) {
       prefetchTriggeredRef.current = task.title
-      
-      // Trigger prefetch in background (fire and forget)
-      fetch('/api/intelligence/prefetch', { method: 'POST' })
-        .then(() => console.log('[TodayCard] Prefetch triggered'))
-        .catch(err => console.log('[TodayCard] Prefetch failed (non-blocking):', err))
+      fetch('/api/intelligence/prefetch', { method: 'POST' }).catch(() => {})
     }
   }, [task?.title])
 
   async function fetchNewTask(withReflection?: string) {
     setIsRefreshing(true)
     setFetchError(false)
-    
     try {
       const url = withReflection 
         ? `/api/intelligence/refresh?reflection=${encodeURIComponent(withReflection)}`
         : '/api/intelligence/refresh'
-      
       const response = await fetch(url)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
-      
-      if (data.success && data.task && data.task.title) {
+      if (data.success && data.task?.title) {
         setTask(data.task)
-        if (data.source === 'prefetch') {
-          console.log('[TodayCard] Used prefetched task - instant!')
-        }
       } else {
-        console.error('[TodayCard] Invalid task response:', data)
         setFetchError(true)
       }
-    } catch (error) {
-      console.error('[TodayCard] Fetch error:', error)
+    } catch {
       setFetchError(true)
     } finally {
       setIsRefreshing(false)
@@ -110,36 +102,27 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     if (isSubmitting || !task) return
     setIsSubmitting(true)
     lastReflectionRef.current = reflection.trim()
-
     try {
       const result = await completeTask(
-        {
-          title: task.title,
-          reasoning: task.reasoning,
-          guardrail: task.guardrail,
-        },
+        { title: task.title, reasoning: task.reasoning, guardrail: task.guardrail },
         reflection.trim() || undefined
       )
-
       if (result.success) {
         setShowReflection(false)
         const savedReflection = reflection.trim()
         setReflection('')
         setShowSuccess(true)
         setIsSubmitting(false)
-        
         setTimeout(async () => {
           setShowSuccess(false)
           await fetchNewTask(savedReflection)
         }, 1200)
       } else {
-        console.error('[TodayCard] Complete failed:', result.error)
-        alert('Failed to complete task. Please try again.')
+        alert('Failed to complete task.')
         setIsSubmitting(false)
       }
-    } catch (error) {
-      console.error('[TodayCard] Complete error:', error)
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('An error occurred.')
       setIsSubmitting(false)
     }
   }
@@ -148,32 +131,23 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     if (isSubmitting || !task) return
     setIsSubmitting(true)
     lastReflectionRef.current = ''
-
     try {
-      const result = await completeTask({
-        title: task.title,
-        reasoning: task.reasoning,
-        guardrail: task.guardrail,
-      })
-
+      const result = await completeTask({ title: task.title, reasoning: task.reasoning, guardrail: task.guardrail })
       if (result.success) {
         setShowReflection(false)
         setReflection('')
         setShowSuccess(true)
         setIsSubmitting(false)
-        
         setTimeout(async () => {
           setShowSuccess(false)
           await fetchNewTask()
         }, 1200)
       } else {
-        console.error('[TodayCard] Complete failed:', result.error)
-        alert('Failed to complete task. Please try again.')
+        alert('Failed to complete task.')
         setIsSubmitting(false)
       }
-    } catch (error) {
-      console.error('[TodayCard] Complete error:', error)
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('An error occurred.')
       setIsSubmitting(false)
     }
   }
@@ -181,25 +155,17 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   async function handleSkip() {
     if (isLoading || !task) return
     setIsSkipping(true)
-
     try {
-      const result = await skipTask({
-        title: task.title,
-        reasoning: task.reasoning,
-        guardrail: task.guardrail,
-      })
-
+      const result = await skipTask({ title: task.title, reasoning: task.reasoning, guardrail: task.guardrail })
       if (result.success) {
         setIsSkipping(false)
         await fetchNewTask()
       } else {
-        console.error('[TodayCard] Skip failed:', result.error)
-        alert('Failed to skip task. Please try again.')
+        alert('Failed to skip task.')
         setIsSkipping(false)
       }
-    } catch (error) {
-      console.error('[TodayCard] Skip error:', error)
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('An error occurred.')
       setIsSkipping(false)
     }
   }
@@ -213,25 +179,63 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   }
 
   const containerPadding = isHero ? "p-10" : "p-8"
-  const titleStyle = headerStyle
-  const heroBodyText = bodyText
-  const heroLabelStyle = labelStyle
-  const heroSpacing = "space-y-5"
 
-  // Guide Modal for reflection page
+  // Past Task Detail Modal
+  const PastTaskModal = () => {
+    if (!selectedPastTask) return null
+    return typeof document !== 'undefined' ? createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedPastTask(null)}>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-start justify-between p-5 border-b border-zinc-800">
+            <div className="flex items-center gap-2">
+              <span className={`font-mono text-[11px] ${selectedPastTask.status === 'done' ? 'text-emerald-500' : 'text-zinc-500'}`}>
+                {selectedPastTask.status === 'done' ? '✓' : '→'}
+              </span>
+              <h2 className="font-mono text-[13px] font-semibold text-white">{selectedPastTask.title}</h2>
+            </div>
+            <button onClick={() => setSelectedPastTask(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-5 space-y-4">
+            {selectedPastTask.reasoning && (
+              <div>
+                <span className={labelStyle}>Why</span>
+                <p className={bodyText}>{selectedPastTask.reasoning}</p>
+              </div>
+            )}
+            {selectedPastTask.guardrail && (
+              <div>
+                <span className={labelStyle}>Guardrail</span>
+                <p className={bodyText}>{selectedPastTask.guardrail}</p>
+              </div>
+            )}
+            {selectedPastTask.reflection && (
+              <div>
+                <span className={labelStyle}>Your Note</span>
+                <p className="font-mono text-[13px] text-zinc-400 italic">"{selectedPastTask.reflection}"</p>
+              </div>
+            )}
+            {!selectedPastTask.reasoning && !selectedPastTask.guardrail && !selectedPastTask.reflection && (
+              <p className="font-mono text-[12px] text-zinc-500">No additional details available</p>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body
+    ) : null
+  }
+
+  // Current Task Guide Modal
   const GuideModal = () => {
     if (!showGuideModal || !task?.guide) return null
-    
     return typeof document !== 'undefined' ? createPortal(
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        onClick={() => setShowGuideModal(false)}
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowGuideModal(false)}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-        <div
-          className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-start justify-between p-6 border-b border-zinc-800">
             <h2 className="font-mono text-[14px] font-semibold text-white">{task.title}</h2>
             <button onClick={() => setShowGuideModal(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -241,10 +245,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             </button>
           </div>
           <div className="p-6 space-y-6">
-            <div className="space-y-2">
-              <h3 className={labelStyle}>What You're Doing</h3>
-              <p className={bodyText}>{task.guide.what}</p>
-            </div>
+            <div><h3 className={labelStyle}>What You're Doing</h3><p className={bodyText}>{task.guide.what}</p></div>
             <div className="space-y-3">
               <h3 className={labelStyle}>How To Do It</h3>
               <ol className="space-y-3">
@@ -256,16 +257,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
                 ))}
               </ol>
             </div>
-            <div className="space-y-2">
-              <h3 className={labelStyle}>Why This Works For You</h3>
-              <p className={bodyText}>{task.guide.why}</p>
-            </div>
-            <div className="pt-4 border-t border-zinc-800">
-              <div className="bg-zinc-800/50 border border-zinc-700 rounded p-4">
-                <span className={labelStyle}>Guardrail</span>
-                <p className={`${bodyText} text-zinc-400`}>{task.guardrail}</p>
-              </div>
-            </div>
+            <div><h3 className={labelStyle}>Why This Works For You</h3><p className={bodyText}>{task.guide.why}</p></div>
           </div>
           <div className="p-6 border-t border-zinc-800">
             <button onClick={() => setShowGuideModal(false)} className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors">
@@ -278,14 +270,45 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     ) : null
   }
 
+  // History Dropdown - compact, scrollable
+  const HistoryDropdown = () => {
+    if (!showHistoryDropdown || recentTasks.length === 0) return null
+    return (
+      <div 
+        ref={dropdownRef}
+        className="absolute right-0 top-full mt-2 w-80 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded shadow-2xl z-50"
+      >
+        <div className="p-2 border-b border-zinc-800">
+          <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-zinc-500">
+            Task History
+          </span>
+        </div>
+        <div className="max-h-48 overflow-y-auto">
+          {recentTasks.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => { setSelectedPastTask(t); setShowHistoryDropdown(false) }}
+              className="w-full text-left px-3 py-2 hover:bg-zinc-800/80 transition-colors flex items-start gap-2"
+            >
+              <span className={`font-mono text-[10px] mt-0.5 flex-shrink-0 ${t.status === 'done' ? 'text-emerald-500' : 'text-zinc-600'}`}>
+                {t.status === 'done' ? '✓' : '→'}
+              </span>
+              <span className="font-mono text-[11px] text-zinc-300 line-clamp-1">{t.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   // Error state
   if (fetchError) {
     return (
-      <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
-        <h2 className={`${titleStyle} mb-6`}>Today</h2>
+      <div className={`${containerPadding}`} style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
           <p className="font-mono text-[12px] text-zinc-400">Could not generate task</p>
-          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors">
+          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors">
             Retry
           </button>
         </div>
@@ -296,8 +319,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Success state
   if (showSuccess) {
     return (
-      <div className={`${containerPadding} space-y-4 transition-all duration-300`} style={cardStyle}>
-        <h2 className={`${titleStyle} mb-6`}>Today</h2>
+      <div className={`${containerPadding}`} style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-3">
           <p className="font-mono text-[14px] font-semibold text-white">✓ Done</p>
           <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-zinc-500">Loading next task...</p>
@@ -309,9 +332,9 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Refreshing state
   if (isRefreshing) {
     return (
-      <div className={`${containerPadding} space-y-4 transition-all duration-300`} style={cardStyle}>
-        <h2 className={`${titleStyle} mb-6`}>Today</h2>
-        <div className="py-12 text-center space-y-3">
+      <div className={`${containerPadding}`} style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
+        <div className="py-12 text-center">
           <p className="font-mono text-[12px] uppercase tracking-[0.15em] text-zinc-400 animate-pulse">Thinking...</p>
         </div>
       </div>
@@ -321,11 +344,11 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // No task state
   if (!task) {
     return (
-      <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
-        <h2 className={`${titleStyle} mb-6`}>Today</h2>
+      <div className={`${containerPadding}`} style={cardStyle}>
+        <h2 className={`${headerStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
           <p className="font-mono text-[12px] text-zinc-400">No task available</p>
-          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors">
+          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors">
             Generate Task
           </button>
         </div>
@@ -333,98 +356,61 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     )
   }
 
-  // Reflection capture state
+  // Reflection state
   if (showReflection) {
     return (
-      <div className={`${containerPadding} transition-all duration-300`} style={cardStyle}>
+      <div className={`${containerPadding}`} style={cardStyle}>
         <GuideModal />
-        <h2 className={`${titleStyle} mb-6`}>Today</h2>
+        <PastTaskModal />
         
-        <div className={heroSpacing}>
-          {/* Task title with view guide link */}
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <h2 className={headerStyle}>Today</h2>
+          <div className="flex items-center gap-4">
+            {recentTasks.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
+                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  History
+                </button>
+                <HistoryDropdown />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="space-y-5">
           <div className="flex items-start justify-between gap-4">
             <p className="font-mono text-[14px] font-semibold text-white">✓ {task.title}</p>
             {task.guide && (
-              <button
-                onClick={() => setShowGuideModal(true)}
-                className="flex-shrink-0 font-mono text-[10px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors"
-              >
-                View Guide
+              <button onClick={() => setShowGuideModal(true)} className="flex-shrink-0 font-mono text-[9px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors">
+                Guide
               </button>
             )}
           </div>
           
-          <div className="space-y-3">
-            <label className={heroLabelStyle}>Quick Note (Optional)</label>
-            
+          <div className="space-y-2">
+            <label className={labelStyle}>Quick Note (Optional)</label>
             <textarea
               value={reflection}
               onChange={(e) => setReflection(e.target.value.slice(0, charLimit))}
               placeholder="What worked? What didn't?"
               disabled={isSubmitting}
-              className="w-full h-24 bg-zinc-900/50 border border-zinc-700/50 rounded px-3 py-2 font-mono text-[14px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors disabled:opacity-50"
+              className="w-full h-20 bg-zinc-900/50 border border-zinc-700/50 rounded px-3 py-2 font-mono text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors disabled:opacity-50"
             />
-            
-            <p className="font-mono text-[10px] tracking-[0.1em] text-zinc-600 text-right">
-              {reflection.length}/{charLimit}
-            </p>
+            <p className="font-mono text-[9px] tracking-[0.1em] text-zinc-600 text-right">{reflection.length}/{charLimit}</p>
           </div>
           
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleSkipReflection}
-              disabled={isSubmitting}
-              className="flex-1 py-2 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+          <div className="flex gap-3">
+            <button onClick={handleSkipReflection} disabled={isSubmitting} className="flex-1 py-2 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50">
               {isSubmitting ? '...' : 'Skip'}
             </button>
-            
-            <button
-              onClick={handleCompleteWithReflection}
-              disabled={isSubmitting}
-              className="flex-1 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 hover:border-zinc-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button onClick={handleCompleteWithReflection} disabled={isSubmitting} className="flex-1 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50">
               {isSubmitting ? '...' : 'Save'}
             </button>
           </div>
-
-          {/* Recent Tasks (collapsible) */}
-          {recentTasks.length > 0 && (
-            <div className="pt-4 border-t border-zinc-800/50">
-              <button
-                onClick={() => setShowRecentTasks(!showRecentTasks)}
-                className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-400 transition-colors"
-              >
-                <svg 
-                  className={`w-3 h-3 transition-transform ${showRecentTasks ? 'rotate-90' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-                Recent Tasks ({recentTasks.length})
-              </button>
-              
-              {showRecentTasks && (
-                <div className="mt-3 space-y-2">
-                  {recentTasks.slice(0, 5).map((t) => (
-                    <div key={t.id} className="flex items-start gap-2 text-zinc-500">
-                      <span className="font-mono text-[11px]">
-                        {t.status === 'done' ? '✓' : '→'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-mono text-[12px] text-zinc-400 truncate">{t.title}</p>
-                        {t.reflection && (
-                          <p className="font-mono text-[10px] text-zinc-600 truncate mt-0.5">"{t.reflection}"</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     )
@@ -432,97 +418,54 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
 
   // Default task view
   return (
-    <div 
-      className={`${containerPadding} ${heroSpacing} transition-all duration-300 group`}
-      style={cardStyle}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(36, 39, 49, 0.5)'
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-        e.currentTarget.style.boxShadow = '0 16px 48px rgba(0, 0, 0, 0.8)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'rgba(26, 26, 26, 0.4)'
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'
-        e.currentTarget.style.boxShadow = '0 9px 24px rgba(0, 0, 0, 0.5)'
-      }}
+    <div className={`${containerPadding} space-y-5 transition-all duration-300 group`} style={cardStyle}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(36, 39, 49, 0.5)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(26, 26, 26, 0.4)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)' }}
     >
-      {/* Header with action buttons */}
-      <div className="flex justify-between items-start mb-6">
-        <h2 className={`${titleStyle}`}>Today</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={handleSkip}
-            disabled={isLoading}
-            className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-2 py-0.5 tracking-[0.12em]"
-          >
-            {isSkipping ? '...' : 'Skip'}
-          </button>
-          <button
-            onClick={handleDoneClick}
-            disabled={isLoading}
-            className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/15 hover:border-white/50 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-2 py-0.5 tracking-[0.12em]"
-          >
-            Done
-          </button>
+      <PastTaskModal />
+      
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <h2 className={headerStyle}>Today</h2>
+        <div className="flex items-center gap-4">
+          {recentTasks.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
+                className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                History
+              </button>
+              <HistoryDropdown />
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={handleSkip} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/10 disabled:opacity-50 text-white text-[9px] px-2 py-0.5 tracking-[0.12em]">
+              {isSkipping ? '...' : 'Skip'}
+            </button>
+            <button onClick={handleDoneClick} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/15 disabled:opacity-50 text-white text-[9px] px-2 py-0.5 tracking-[0.12em]">
+              Done
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className={heroSpacing}>
-        {/* Task title with guide modal */}
-        <div>
-          <span className={heroLabelStyle}>Task</span>
-          <TaskGuideModal task={task} isHero={isHero} />
-        </div>
+      {/* Task */}
+      <div>
+        <span className={labelStyle}>Task</span>
+        <TaskGuideModal task={task} isHero={isHero} />
+      </div>
 
-        {/* Why this task */}
-        <div>
-          <span className={heroLabelStyle}>Why</span>
-          <p className={heroBodyText}>{task.reasoning || 'No reasoning available'}</p>
-        </div>
+      {/* Why */}
+      <div>
+        <span className={labelStyle}>Why</span>
+        <p className={bodyText}>{task.reasoning || 'No reasoning available'}</p>
+      </div>
 
-        {/* Guardrail */}
-        <div>
-          <span className={heroLabelStyle}>Guardrail</span>
-          <p className={heroBodyText}>{task.guardrail || 'Take your time'}</p>
-        </div>
-
-        {/* Recent Tasks (collapsible) */}
-        {recentTasks.length > 0 && (
-          <div className="pt-4 border-t border-zinc-800/50">
-            <button
-              onClick={() => setShowRecentTasks(!showRecentTasks)}
-              className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-400 transition-colors"
-            >
-              <svg 
-                className={`w-3 h-3 transition-transform ${showRecentTasks ? 'rotate-90' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              Recent Tasks ({recentTasks.length})
-            </button>
-            
-            {showRecentTasks && (
-              <div className="mt-3 space-y-2">
-                {recentTasks.slice(0, 5).map((t) => (
-                  <div key={t.id} className="flex items-start gap-2 text-zinc-500">
-                    <span className="font-mono text-[11px]">
-                      {t.status === 'done' ? '✓' : '→'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-mono text-[12px] text-zinc-400 truncate">{t.title}</p>
-                      {t.reflection && (
-                        <p className="font-mono text-[10px] text-zinc-600 truncate mt-0.5">"{t.reflection}"</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+      {/* Guardrail */}
+      <div>
+        <span className={labelStyle}>Guardrail</span>
+        <p className={bodyText}>{task.guardrail || 'Take your time'}</p>
       </div>
     </div>
   )

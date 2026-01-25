@@ -9,6 +9,8 @@ export type TaskHistoryItem = {
   status: 'done' | 'skipped'
   completed_at: string
   reflection?: string
+  reasoning?: string
+  guardrail?: string
 }
 
 export type BehavioralHistory = {
@@ -38,7 +40,7 @@ export async function getBehavioralHistory(
   try {
     const { data: tasks, error: tasksError } = await supabase
       .from('tasks')
-      .select('id, title, task_name, status, completed_at, reflection')
+      .select('id, title, task_name, status, completed_at, reflection, reasoning, guardrail')
       .eq('user_id', userId)
       .order('completed_at', { ascending: false })
       .limit(limit)
@@ -63,7 +65,9 @@ export async function getBehavioralHistory(
       title: task.title || task.task_name || 'Unknown task',
       status: task.status as 'done' | 'skipped',
       completed_at: task.completed_at,
-      reflection: task.reflection || undefined
+      reflection: task.reflection || undefined,
+      reasoning: task.reasoning || undefined,
+      guardrail: task.guardrail || undefined
     }))
 
     const completed = recentTasks.filter(t => t.status === 'done').length

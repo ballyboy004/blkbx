@@ -36,7 +36,9 @@ export default async function DashboardPage() {
     title: t.title,
     status: t.status,
     created_at: t.completed_at,
-    reflection: t.reflection
+    reflection: t.reflection,
+    reasoning: t.reasoning,
+    guardrail: t.guardrail
   }));
 
   const hasTask = intelligence.priorityTask?.title && intelligence.priorityTask.title !== "—";
