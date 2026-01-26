@@ -60,6 +60,54 @@ V1 is live. Core features complete:
 - Reference their exact words
 - NO hype ("crush it", "you got this")
 
+
+## 2026-01-20 Onboarding as First-Class Intelligence Input
+- **Area:** Product / Intelligence
+- **Decision:** Onboarding data directly feeds task personalization — every field has a purpose
+- **Rationale:** `genre_sound` for aesthetic matching, `constraints` for reframing, `stuck_on` for direct addressing. Not just profile data — intelligence input.
+- **Impact:** Onboarding design must capture signal, not just collect data
+
+## 2026-01-20 Dashboard as Reflective System
+- **Area:** Product / UX
+- **Decision:** Dashboard reflects the artist's situation; it does not prescribe or motivate
+- **Rationale:** Artists know what to do. They lack structure and reflection. BLACKBOX is a mirror, not a coach.
+- **Impact:** Voice must be observational. No hype. No productivity patterns.
+
+## 2026-01-22 Deterministic Task Routing
+- **Area:** Intelligence / Architecture
+- **Decision:** Task TYPE is determined by code (`routing.ts`), not AI interpretation
+- **Rationale:** Predictability builds trust. Easier to debug. AI fills specifics; code controls structure.
+- **Impact:** New task types require code changes to routing.ts, not just prompt changes
+
+## 2026-01-22 Task Complete/Skip Semantics
+- **Area:** Product / Behavior
+- **Decision:** Complete = done + optional reflection. Skip = doesn't fit right now, no friction.
+- **Rationale:** Skip is signal, not failure. Reduces friction. 3+ skips triggers adaptation.
+- **Impact:** Skip tracking in routing.ts, reflection capture in TodayCard
+
+## 2026-01-23 Mandatory Aesthetic Enforcement
+- **Area:** Intelligence / Quality
+- **Decision:** Every task title AND reasoning must include the artist's aesthetic/genre by name
+- **Rationale:** Generic tasks feel like any productivity app. Personalization is the differentiator.
+- **Impact:** Quality checks in framework.ts, validation before output
+
+## 2026-01-23 Constraint Reframing
+- **Area:** Intelligence / Voice
+- **Decision:** User constraints are reframed as strategic advantages in task reasoning
+- **Rationale:** "2 hours/week" → "forces one powerful post vs seven mediocre ones." Limitation becomes leverage.
+- **Impact:** Explicit reframing logic in framework.ts
+
+## 2026-01-23 AI Generation Deferred
+- **Area:** Intelligence / Architecture
+- **Decision:** Full AI-driven task generation deferred in favor of deterministic routing + AI fill-in
+- **Rationale:** Prove core value with predictable behavior first. Earn complexity.
+- **Impact:** Intelligence evolution is incremental, not revolutionary
+
+## 2026-01-25 Local Folder Standardized
+- **Area:** Engineering / Process
+- **Decision:** Single source of truth: `/Users/samuelgilmore/Documents/blkbox`
+- **Rationale:** Duplicate folders caused confusion, broken deployments, wasted time
+- **Impact:** All work happens in one folder. Git remote must match Vercel connection.
 ---
 
 ## File Locations
