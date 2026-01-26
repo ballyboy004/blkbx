@@ -178,29 +178,29 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
   }
 
-  const containerPadding = isHero ? "p-10" : "p-8"
+  const containerPadding = isHero ? "p-6 sm:p-8 md:p-10" : "p-6 sm:p-8"
 
   // Past Task Detail Modal
   const PastTaskModal = () => {
     if (!selectedPastTask) return null
     return typeof document !== 'undefined' ? createPortal(
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedPastTask(null)}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={() => setSelectedPastTask(null)}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-        <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-start justify-between p-5 border-b border-zinc-800">
-            <div className="flex items-center gap-2">
-              <span className={`font-mono text-[11px] ${selectedPastTask.status === 'done' ? 'text-emerald-500' : 'text-zinc-500'}`}>
+        <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-start justify-between p-4 sm:p-5 border-b border-zinc-800 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className={`font-mono text-[11px] flex-shrink-0 ${selectedPastTask.status === 'done' ? 'text-emerald-500' : 'text-zinc-500'}`}>
                 {selectedPastTask.status === 'done' ? '✓' : '→'}
               </span>
-              <h2 className="font-mono text-[13px] font-semibold text-white">{selectedPastTask.title}</h2>
+              <h2 className="font-mono text-[13px] font-semibold text-white truncate">{selectedPastTask.title}</h2>
             </div>
-            <button onClick={() => setSelectedPastTask(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={() => setSelectedPastTask(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <div className="p-5 space-y-4">
+          <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
             {selectedPastTask.reasoning && (
               <div>
                 <span className={labelStyle}>Why</span>
@@ -233,18 +233,18 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   const GuideModal = () => {
     if (!showGuideModal || !task?.guide) return null
     return typeof document !== 'undefined' ? createPortal(
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowGuideModal(false)}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={() => setShowGuideModal(false)}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-        <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-start justify-between p-6 border-b border-zinc-800">
-            <h2 className="font-mono text-[14px] font-semibold text-white">{task.title}</h2>
-            <button onClick={() => setShowGuideModal(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+        <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-start justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
+            <h2 className="font-mono text-[14px] font-semibold text-white flex-1 pr-2">{task.title}</h2>
+            <button onClick={() => setShowGuideModal(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
             <div><h3 className={labelStyle}>What You're Doing</h3><p className={bodyText}>{task.guide.what}</p></div>
             <div className="space-y-3">
               <h3 className={labelStyle}>How To Do It</h3>
@@ -259,8 +259,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             </div>
             <div><h3 className={labelStyle}>Why This Works For You</h3><p className={bodyText}>{task.guide.why}</p></div>
           </div>
-          <div className="p-6 border-t border-zinc-800">
-            <button onClick={() => setShowGuideModal(false)} className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors">
+          <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
+            <button onClick={() => setShowGuideModal(false)} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors min-h-[44px]">
               Close
             </button>
           </div>
@@ -276,7 +276,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     return (
       <div 
         ref={dropdownRef}
-        className="absolute right-0 top-full mt-2 w-80 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded shadow-2xl z-50"
+        className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-[calc(100vw-1rem)] sm:w-80 max-w-[320px] bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded shadow-2xl z-50"
       >
         <div className="p-2 border-b border-zinc-800">
           <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-zinc-500">
@@ -288,7 +288,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             <button
               key={t.id}
               onClick={() => { setSelectedPastTask(t); setShowHistoryDropdown(false) }}
-              className="w-full text-left px-3 py-2 hover:bg-zinc-800/80 transition-colors flex items-start gap-2"
+              className="w-full text-left px-3 py-3 hover:bg-zinc-800/80 transition-colors flex items-start gap-2 min-h-[44px]"
             >
               <span className={`font-mono text-[10px] mt-0.5 flex-shrink-0 ${t.status === 'done' ? 'text-emerald-500' : 'text-zinc-600'}`}>
                 {t.status === 'done' ? '✓' : '→'}
@@ -371,7 +371,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               <div className="relative">
                 <button
                   onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 min-h-[44px]"
                 >
                   History
                 </button>
@@ -385,7 +385,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           <div className="flex items-start justify-between gap-4">
             <p className="font-mono text-[14px] font-semibold text-white">✓ {task.title}</p>
             {task.guide && (
-              <button onClick={() => setShowGuideModal(true)} className="flex-shrink-0 font-mono text-[9px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors">
+              <button onClick={() => setShowGuideModal(true)} className="flex-shrink-0 font-mono text-[9px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors px-2 py-2 min-h-[44px]">
                 Guide
               </button>
             )}
@@ -398,16 +398,16 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               onChange={(e) => setReflection(e.target.value.slice(0, charLimit))}
               placeholder="What worked? What didn't?"
               disabled={isSubmitting}
-              className="w-full h-20 bg-zinc-900/50 border border-zinc-700/50 rounded px-3 py-2 font-mono text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors disabled:opacity-50"
+              className="w-full min-h-[100px] sm:h-20 bg-zinc-900/50 border border-zinc-700/50 rounded px-3 py-2 font-mono text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors disabled:opacity-50"
             />
             <p className="font-mono text-[9px] tracking-[0.1em] text-zinc-600 text-right">{reflection.length}/{charLimit}</p>
           </div>
           
           <div className="flex gap-3">
-            <button onClick={handleSkipReflection} disabled={isSubmitting} className="flex-1 py-2 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50">
+            <button onClick={handleSkipReflection} disabled={isSubmitting} className="flex-1 py-3 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50 min-h-[44px]">
               {isSubmitting ? '...' : 'Skip'}
             </button>
-            <button onClick={handleCompleteWithReflection} disabled={isSubmitting} className="flex-1 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50">
+            <button onClick={handleCompleteWithReflection} disabled={isSubmitting} className="flex-1 py-3 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50 min-h-[44px]">
               {isSubmitting ? '...' : 'Save'}
             </button>
           </div>
@@ -427,12 +427,12 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
       {/* Header */}
       <div className="flex justify-between items-start">
         <h2 className={headerStyle}>Today</h2>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {recentTasks.length > 0 && (
             <div className="relative">
               <button
                 onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-                className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-2 min-h-[44px]"
               >
                 History
               </button>
@@ -440,10 +440,10 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             </div>
           )}
           <div className="flex gap-2">
-            <button onClick={handleSkip} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/10 disabled:opacity-50 text-white text-[9px] px-2 py-0.5 tracking-[0.12em]">
+            <button onClick={handleSkip} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/10 disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]">
               {isSkipping ? '...' : 'Skip'}
             </button>
-            <button onClick={handleDoneClick} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/15 disabled:opacity-50 text-white text-[9px] px-2 py-0.5 tracking-[0.12em]">
+            <button onClick={handleDoneClick} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/15 disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]">
               Done
             </button>
           </div>

@@ -111,7 +111,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
       {/* Trigger button */}
       <button
         onClick={handleOpen}
-        className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 text-white text-[9px] px-2 py-0.5 tracking-[0.12em]"
+        className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
       >
         Edit
       </button>
@@ -119,7 +119,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
       {/* Modal */}
       {isOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => !isSaving && setIsOpen(false)}
         >
           {/* Backdrop */}
@@ -127,18 +127,18 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-2xl my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
               <h2 className="font-mono text-[14px] font-semibold tracking-[0.15em] uppercase text-white">
                 Edit Profile
               </h2>
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-50"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-50 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -147,7 +147,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
               
               {/* Context */}
               <FieldBlock label="Context (Who You Are)">
@@ -284,18 +284,18 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 p-6 border-t border-zinc-800">
+            <div className="flex gap-3 p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="flex-1 py-2.5 bg-transparent hover:bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 bg-transparent hover:bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 transition-colors disabled:opacity-50 min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-2.5 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors disabled:opacity-50"
+                className="flex-1 py-3 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors disabled:opacity-50 min-h-[44px]"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -330,7 +330,7 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-2 rounded-md border transition-colors font-mono text-[11px] tracking-tight ${
+      className={`px-4 py-3 rounded-md border transition-colors font-mono text-[11px] tracking-tight min-h-[44px] ${
         active
           ? 'bg-zinc-700/50 border-zinc-500 text-white'
           : 'bg-transparent border-zinc-700 text-zinc-400 hover:bg-zinc-800/50 hover:text-white hover:border-zinc-600'

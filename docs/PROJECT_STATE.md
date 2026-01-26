@@ -1,5 +1,5 @@
 # PROJECT_STATE.md
-**Last Updated:** 2026-01-25
+**Last Updated:** 2026-01-26
 
 ---
 
@@ -94,11 +94,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 | `/api/intelligence/refresh` | `app/api/intelligence/refresh/route.ts` | Generate new task |
 | `/api/intelligence/prefetch` | `app/api/intelligence/prefetch/route.ts` | Pre-generate next task |
 | `/api/intelligence/current-read` | `app/api/intelligence/current-read/route.ts` | Get current read only |
-| `/api/intelligence/strategic-task` | `app/api/intelligence/strategic-task/route.ts` | Unknown - needs review |
-| `/api/intelligence/task-chat` | `app/api/intelligence/task-chat/route.ts` | Unknown - needs review |
+| `/api/intelligence/strategic-task` | `app/api/intelligence/strategic-task/route.ts` | Generate strategic task from user input |
 | `/api/onboarding/followups` | `app/api/onboarding/followups/route.ts` | Generate follow-up questions |
-| `/api/test-intelligence` | `app/api/test-intelligence/route.ts` | Test route |
-| `/api/test-rls` | `app/api/test-rls/route.ts` | Test route |
 
 ---
 
@@ -164,9 +161,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 ## Known Bugs / Risks
 
-1. **Test routes in production** — `/api/test-intelligence` and `/api/test-rls` should be removed or protected
-2. **Legacy fields** — `task_name` duplicates `title` in tasks table
-3. **Unknown routes** — `strategic-task` and `task-chat` API routes need review for usage
+1. **Legacy fields** — `task_name` duplicates `title` in tasks table
+2. **Unused component** — `StrategicInputForm` component exists but is not currently used in the dashboard
 
 ---
 

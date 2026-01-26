@@ -37,7 +37,7 @@ export default function FreshButton() {
     <button
       onClick={handleRefresh}
       disabled={isRefreshing}
-      className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-2 py-0.5 tracking-[0.12em]"
+      className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
     >
       {isRefreshing ? 'Refreshing...' : 'Refresh'}
     </button>

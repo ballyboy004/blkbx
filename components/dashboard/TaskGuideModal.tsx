@@ -40,7 +40,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
       {/* Modal overlay */}
       {isOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
           onClick={() => setIsOpen(false)}
         >
           {/* Backdrop */}
@@ -48,17 +48,17 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-start justify-between p-6 border-b border-zinc-800">
-              <h2 className="font-mono text-[14px] font-semibold text-white">
+            <div className="flex items-start justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
+              <h2 className="font-mono text-[14px] font-semibold text-white flex-1 pr-2">
                 {task.title}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -67,7 +67,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
               {/* What */}
               <div className="space-y-2">
                 <h3 className={labelStyle}>What You're Doing</h3>
@@ -105,10 +105,10 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-zinc-800">
+            <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors"
+                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors min-h-[44px]"
               >
                 Close
               </button>

@@ -73,22 +73,22 @@ export default async function DashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen px-6 md:px-10 py-12">
-        <div className="max-w-[1100px] mx-auto space-y-8">
+      <div className="relative z-10 min-h-screen px-4 sm:px-6 md:px-10 py-8 sm:py-12">
+        <div className="max-w-[1100px] mx-auto space-y-6 sm:space-y-8">
           
           {/* Header */}
           <header className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <Link href="/">
-                <h1 className="text-5xl font-inter font-black tracking-[-0.08em] text-white lowercase hover:text-zinc-200 transition-colors cursor-pointer">
-                  blackbox<span className="text-3xl">.</span>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-inter font-black tracking-[-0.08em] text-white lowercase hover:text-zinc-200 transition-colors cursor-pointer">
+                  blackbox<span className="text-2xl sm:text-3xl">.</span>
                 </h1>
               </Link>
               <p className="text-xs uppercase tracking-[0.2em] font-mono text-zinc-500">Dashboard</p>
             </div>
 
             <form action="/auth/signout" method="post">
-              <button className="text-xs uppercase tracking-[0.15em] font-mono text-zinc-600 hover:text-zinc-400 transition-colors mt-2">
+              <button className="text-xs uppercase tracking-[0.15em] font-mono text-zinc-600 hover:text-zinc-400 transition-colors mt-2 px-3 py-2 min-h-[44px]">
                 Sign Out
               </button>
             </form>
@@ -98,7 +98,7 @@ export default async function DashboardPage() {
           {hasTask ? (
             <TodayCard task={intelligence.priorityTask} recentTasks={recentTasks} />
           ) : (
-            <div className="p-10" style={cardStyle}>
+            <div className="p-6 sm:p-8 md:p-10" style={cardStyle}>
               <h2 className={`${headerStyle} mb-6`}>Today</h2>
               <div className="space-y-4 py-8">
                 <p className="font-mono text-[13px] text-zinc-500 italic text-center">
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
           )}
 
           {/* CURRENT READ */}
-          <div className="p-10" style={cardStyle}>
+          <div className="p-6 sm:p-8 md:p-10" style={cardStyle}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={headerStyle}>Current Read</h2>
               <FreshButton />
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
             {/* PROFILE CARD */}
-            <div className="p-8 space-y-4" style={cardStyle}>
+            <div className="p-6 sm:p-8 space-y-4" style={cardStyle}>
               <div className="flex justify-between items-start mb-6">
                 <h2 className={headerStyle}>Profile</h2>
                 <EditProfileModal profile={profile} />
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* PATTERNS CARD */}
-            <div className="p-8 space-y-4" style={cardStyle}>
+            <div className="p-6 sm:p-8 space-y-4" style={cardStyle}>
               <h2 className={`${headerStyle} mb-6`}>Patterns</h2>
               <div className="space-y-5">
                 <div>
