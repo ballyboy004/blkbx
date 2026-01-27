@@ -161,18 +161,16 @@ export default async function DashboardPage() {
                 <h2 className={headerStyle}>Profile</h2>
                 <EditProfileModal profile={profile} />
               </div>
+              
+              {/* Summary */}
+              <div className="mb-6">
+                <p className={bodyText}>{intelligence.identitySummary || "—"}</p>
+              </div>
+              
               <div className="space-y-5">
                 <div>
-                  <span className={labelStyle}>Goal</span>
-                  <p className={bodyText}>{profile.primary_goal || "—"}</p>
-                </div>
-                <div>
-                  <span className={labelStyle}>Focus</span>
-                  <p className={bodyText}>{profile.current_focus || "—"}</p>
-                </div>
-                <div>
-                  <span className={labelStyle}>Constraints</span>
-                  <p className={bodyText}>{profile.constraints || "—"}</p>
+                  <span className={labelStyle}>Genre</span>
+                  <p className={bodyText}>{profile.genre_sound || "—"}</p>
                 </div>
                 <div>
                   <span className={labelStyle}>Stage</span>

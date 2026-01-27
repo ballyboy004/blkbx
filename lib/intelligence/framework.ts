@@ -279,7 +279,7 @@ OUTPUT FORMAT (JSON):
 {
   "currentRead": "2-3 sentences identifying their core strategic tension. Name what they want vs what's blocking them. Reference their specific constraints or use their exact language.",
   
-  "identitySummary": "One sentence — who they are, using their own language from profile",
+  "identitySummary": "2-3 sentences — who they are, their sound/genre, career stage, primary goal, and release/content style. Use second-person, observational voice. Example: 'You're a dark R&B producer at the building stage. Your sound sits between The Weeknd and ambient electronics. You release regularly and post content sometimes, focused on consistent releases to build momentum.'",
   
   "edge": "Their strength (directly from profile)",
   "friction": "What's actually blocking them (from profile or behavioral pattern)",
