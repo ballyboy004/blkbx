@@ -13,13 +13,23 @@ const bodyText = "font-mono text-[13px] font-normal tracking-normal leading-[1.7
 const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
 const headerStyle = "font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500"
 
-// Card style
-const cardStyle = {
+// Card styles with 3D depth
+const cardStyleBase = {
   background: 'rgba(26, 26, 26, 0.4)',
   backdropFilter: 'blur(24px) saturate(180%)',
   border: '1px solid rgba(255, 255, 255, 0.12)',
+  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
   borderRadius: '4px',
-  boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2)'
+}
+
+const cardStyleMedium = {
+  background: 'rgba(26, 26, 26, 0.4)',
+  backdropFilter: 'blur(24px) saturate(180%)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  borderTop: '1px solid rgba(255, 255, 255, 0.07)',
+  borderRadius: '4px',
+  boxShadow: '0 3px 12px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.25)'
 }
 
 export default async function DashboardPage() {
@@ -96,26 +106,45 @@ export default async function DashboardPage() {
 
           {/* TODAY - HERO POSITION */}
           {hasTask ? (
-            <TodayCard task={intelligence.priorityTask} recentTasks={recentTasks} />
+            <div className="relative">
+              {/* Background glow behind TODAY card */}
+              <div 
+                className="absolute inset-0 -z-10 rounded-[4px] opacity-30"
+                style={{
+                  background: 'radial-gradient(ellipse at center, rgba(40, 40, 50, 0.15) 0%, transparent 70%)',
+                  transform: 'translateY(8px) scale(1.02)'
+                }}
+              />
+              <TodayCard task={intelligence.priorityTask} recentTasks={recentTasks} />
+            </div>
           ) : (
-            <div className="p-6 sm:p-8 md:p-10" style={cardStyle}>
-              <h2 className={`${headerStyle} mb-6`}>Today</h2>
-              <div className="space-y-4 py-8">
-                <p className="font-mono text-[13px] text-zinc-500 italic text-center">
-                  No tasks yet
-                </p>
-                <p className={`${bodyText} text-center text-zinc-400`}>
-                  Tasks appear when Blackbox identifies actions based on your situation.
-                </p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-600 text-center">
-                  → Edit profile to unlock tasks
-                </p>
+            <div className="relative">
+              <div 
+                className="absolute inset-0 -z-10 rounded-[4px] opacity-30"
+                style={{
+                  background: 'radial-gradient(ellipse at center, rgba(40, 40, 50, 0.15) 0%, transparent 70%)',
+                  transform: 'translateY(8px) scale(1.02)'
+                }}
+              />
+              <div className="p-6 sm:p-8 md:p-10" style={cardStyleMedium}>
+                <h2 className={`${headerStyle} mb-6`}>Today</h2>
+                <div className="space-y-4 py-8">
+                  <p className="font-mono text-[13px] text-zinc-500 italic text-center">
+                    No tasks yet
+                  </p>
+                  <p className={`${bodyText} text-center text-zinc-400`}>
+                    Tasks appear when Blackbox identifies actions based on your situation.
+                  </p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-600 text-center">
+                    → Edit profile to unlock tasks
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {/* CURRENT READ */}
-          <div className="p-6 sm:p-8 md:p-10" style={cardStyle}>
+          <div className="p-6 sm:p-8 md:p-10" style={cardStyleBase}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={headerStyle}>Current Read</h2>
               <FreshButton />
@@ -127,7 +156,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
             {/* PROFILE CARD */}
-            <div className="p-6 sm:p-8 space-y-4" style={cardStyle}>
+            <div className="p-6 sm:p-8 space-y-4" style={cardStyleMedium}>
               <div className="flex justify-between items-start mb-6">
                 <h2 className={headerStyle}>Profile</h2>
                 <EditProfileModal profile={profile} />
@@ -153,7 +182,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* PATTERNS CARD */}
-            <div className="p-6 sm:p-8 space-y-4" style={cardStyle}>
+            <div className="p-6 sm:p-8 space-y-4" style={cardStyleMedium}>
               <h2 className={`${headerStyle} mb-6`}>Patterns</h2>
               <div className="space-y-5">
                 <div>

@@ -15,8 +15,9 @@ export default function CollapsibleSection({ title, children, defaultExpanded = 
     background: 'rgba(26, 26, 26, 0.4)',
     backdropFilter: 'blur(24px) saturate(180%)',
     border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
     borderRadius: '4px',
-    boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2)'
   }
   
   return (

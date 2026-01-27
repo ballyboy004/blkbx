@@ -174,8 +174,9 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     background: 'rgba(26, 26, 26, 0.4)',
     backdropFilter: 'blur(24px) saturate(180%)',
     border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
     borderRadius: '4px',
-    boxShadow: '0 9px 24px rgba(0, 0, 0, 0.5)'
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.3)'
   }
 
   const containerPadding = isHero ? "p-6 sm:p-8 md:p-10" : "p-6 sm:p-8"
@@ -404,10 +405,46 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           </div>
           
           <div className="flex gap-3">
-            <button onClick={handleSkipReflection} disabled={isSubmitting} className="flex-1 py-3 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50 min-h-[44px]">
+            <button 
+              onClick={handleSkipReflection} 
+              disabled={isSubmitting} 
+              className="flex-1 py-3 bg-transparent border border-zinc-700/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors disabled:opacity-50 min-h-[44px]"
+              style={{
+                boxShadow: isSubmitting ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                }
+              }}
+            >
               {isSubmitting ? '...' : 'Skip'}
             </button>
-            <button onClick={handleCompleteWithReflection} disabled={isSubmitting} className="flex-1 py-3 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50 min-h-[44px]">
+            <button 
+              onClick={handleCompleteWithReflection} 
+              disabled={isSubmitting} 
+              className="flex-1 py-3 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50 min-h-[44px]"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }
+              }}
+            >
               {isSubmitting ? '...' : 'Save'}
             </button>
           </div>
@@ -419,8 +456,18 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Default task view
   return (
     <div className={`${containerPadding} space-y-5 transition-all duration-300 group`} style={cardStyle}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(36, 39, 49, 0.5)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(26, 26, 26, 0.4)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)' }}
+      onMouseEnter={(e) => { 
+        e.currentTarget.style.background = 'rgba(36, 39, 49, 0.5)'
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+        e.currentTarget.style.borderTopColor = 'rgba(255, 255, 255, 0.1)'
+        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.45), 0 20px 40px rgba(0, 0, 0, 0.35)'
+      }}
+      onMouseLeave={(e) => { 
+        e.currentTarget.style.background = 'rgba(26, 26, 26, 0.4)'
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'
+        e.currentTarget.style.borderTopColor = 'rgba(255, 255, 255, 0.08)'
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.3)'
+      }}
     >
       <PastTaskModal />
       
@@ -440,10 +487,50 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             </div>
           )}
           <div className="flex gap-2">
-            <button onClick={handleSkip} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/10 disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]">
+            <button 
+              onClick={handleSkip} 
+              disabled={isLoading} 
+              className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              style={{
+                boxShadow: isLoading ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
+            >
               {isSkipping ? '...' : 'Skip'}
             </button>
-            <button onClick={handleDoneClick} disabled={isLoading} className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all hover:bg-white/15 disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]">
+            <button 
+              onClick={handleDoneClick} 
+              disabled={isLoading} 
+              className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
+            >
               Done
             </button>
           </div>
