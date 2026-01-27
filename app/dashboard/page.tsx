@@ -156,7 +156,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
             {/* PROFILE CARD */}
-            <div className="p-6 sm:p-8 space-y-4" style={cardStyleMedium}>
+            <div className="p-6 sm:p-8" style={cardStyleMedium}>
               <div className="flex justify-between items-start mb-6">
                 <h2 className={headerStyle}>Profile</h2>
                 <EditProfileModal profile={profile} />
@@ -178,7 +178,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* PATTERNS CARD */}
-            <div className="p-6 sm:p-8 space-y-4" style={cardStyleMedium}>
+            <div className="p-6 sm:p-8" style={cardStyleMedium}>
               <div className="flex justify-between items-start mb-6">
                 <h2 className={headerStyle}>Patterns</h2>
               </div>
