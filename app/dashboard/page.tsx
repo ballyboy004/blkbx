@@ -164,19 +164,19 @@ export default async function DashboardPage() {
               <div className="space-y-5">
                 <div>
                   <span className={labelStyle}>Goal</span>
-                  <p className={bodyText}>{profile.primary_goal || "—"}</p>
+                  <p className={bodyText}>{intelligence.profileInterpretations.goal || "—"}</p>
                 </div>
                 <div>
                   <span className={labelStyle}>Focus</span>
-                  <p className={bodyText}>{profile.current_focus || "—"}</p>
+                  <p className={bodyText}>{intelligence.profileInterpretations.focus || "—"}</p>
                 </div>
                 <div>
                   <span className={labelStyle}>Constraints</span>
-                  <p className={bodyText}>{profile.constraints || "—"}</p>
+                  <p className={bodyText}>{intelligence.profileInterpretations.constraints || "—"}</p>
                 </div>
                 <div>
                   <span className={labelStyle}>Stage</span>
-                  <p className={`${bodyText} capitalize`}>{profile.career_stage || "—"}</p>
+                  <p className={bodyText}>{intelligence.profileInterpretations.stage || "—"}</p>
                 </div>
               </div>
             </div>

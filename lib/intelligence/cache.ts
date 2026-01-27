@@ -42,6 +42,13 @@ export type CachedInterpretation = {
   strategic_question_used?: string
   // Prompt version for invalidation
   prompt_version?: number
+  // Profile interpretations (stored in strategic_context jsonb for now)
+  profile_interpretations?: {
+    goal: string
+    focus: string
+    constraints: string
+    stage: string
+  }
 }
 
 /**
@@ -161,6 +168,13 @@ export async function cacheDashboardIntelligence(
 
   const profileHash = generateProfileHash(profile)
 
+  // Store profile interpretations in strategic_context jsonb as nested object
+  // This allows us to store them without schema changes
+  const strategicContextWithProfile = [
+    ...intelligence.strategicContext,
+    { _profileInterpretations: intelligence.profileInterpretations }
+  ]
+
   const { error } = await supabase
     .from('interpretations')
     .upsert(
@@ -171,7 +185,7 @@ export async function cacheDashboardIntelligence(
         edge_interpretation: intelligence.edge,
         friction_interpretation: intelligence.friction,
         constraint_interpretation: '', // Legacy field - constraints come from profile now
-        strategic_context: intelligence.strategicContext,
+        strategic_context: strategicContextWithProfile,
         priority_task_title: intelligence.priorityTask.title,
         priority_task_reasoning: intelligence.priorityTask.reasoning,
         priority_task_guardrail: intelligence.priorityTask.guardrail,

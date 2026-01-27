@@ -309,7 +309,14 @@ OUTPUT FORMAT (JSON):
     "Logical follow-up action 1",
     "Logical follow-up action 2", 
     "Logical follow-up action 3"
-  ]
+  ],
+  
+  "profileInterpretations": {
+    "goal": "Your observation of their primary goal in second-person. Example: 'You're focused on consistent releases to build momentum' (not just 'consistent releases')",
+    "focus": "Your observation of their current focus in second-person. Example: 'You're working on release idea 001 while building TikTok discovery' (not just 'release idea 001')",
+    "constraints": "Your reframed observation of their constraints in second-person. Example: 'You have 2 hours/day and low budget - forces intentional moves over busy work' (not just '2 hours/day, low budget')",
+    "stage": "Your observation of their career stage in second-person. Example: 'You're at the building stage - establishing your sound and audience' (not just 'building')"
+  }
 }
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

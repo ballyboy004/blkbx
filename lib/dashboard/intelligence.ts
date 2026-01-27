@@ -15,6 +15,12 @@ export type CompleteDashboardIntelligence = {
   strategicContext: string[]
   priorityTask: PriorityTask
   nextActions: string[]
+  profileInterpretations: {
+    goal: string
+    focus: string
+    constraints: string
+    stage: string
+  }
   source: 'cache' | 'generated' | 'fallback'
   metadata?: {
     generatedAt?: string
@@ -40,12 +46,37 @@ export async function getCompleteDashboardIntelligence(
     
     if (cached && cached.identity_summary && cached.priority_task_title) {
       console.log('[Dashboard Intelligence] Using complete cached interpretation')
+      
+      // Extract profile interpretations from strategic_context if present
+      let profileInterpretations = {
+        goal: '',
+        focus: '',
+        constraints: '',
+        stage: ''
+      }
+      
+      let strategicContext = cached.strategic_context || []
+      
+      if (Array.isArray(cached.strategic_context)) {
+        const profileData = cached.strategic_context.find((item: any) => item?._profileInterpretations)
+        if (profileData?._profileInterpretations) {
+          profileInterpretations = profileData._profileInterpretations
+          // Remove the profile interpretations object from strategic context
+          strategicContext = cached.strategic_context.filter((item: any) => !item?._profileInterpretations)
+        }
+      }
+      
+      // If not found in cache, generate fallback interpretations
+      if (!profileInterpretations.goal) {
+        profileInterpretations = generateFallbackProfileInterpretations(profile)
+      }
+      
       return {
         currentRead: cached.current_read,
         identitySummary: cached.identity_summary,
         edge: cached.edge_interpretation,
         friction: cached.friction_interpretation,
-        strategicContext: cached.strategic_context,
+        strategicContext: strategicContext,
         priorityTask: {
           title: cached.priority_task_title,
           reasoning: cached.priority_task_reasoning,
@@ -53,6 +84,7 @@ export async function getCompleteDashboardIntelligence(
           guide: cached.priority_task_guide,
         },
         nextActions: cached.next_actions,
+        profileInterpretations,
         source: 'cache',
         metadata: {
           generatedAt: cached.generated_at,
@@ -91,6 +123,36 @@ export async function getCompleteDashboardIntelligence(
 /**
  * Fallback dashboard intelligence if API fails
  */
+function generateFallbackProfileInterpretations(profile: Profile): {
+  goal: string
+  focus: string
+  constraints: string
+  stage: string
+} {
+  const goal = profile.primary_goal || 'growing your career'
+  const focus = profile.current_focus || 'next steps'
+  const constraints = profile.constraints || 'resource limitations'
+  const stage = profile.career_stage || 'building'
+  
+  return {
+    goal: goal ? `You're focused on ${goal}` : 'Your primary goal is being established',
+    focus: focus ? `You're working on ${focus}` : 'Your current focus is being determined',
+    constraints: constraints ? `You have ${constraints} - forces intentional moves over busy work` : 'Your constraints are being understood',
+    stage: `You're at the ${stage} stage - ${getStageDescription(stage)}`
+  }
+}
+
+function getStageDescription(stage: string): string {
+  const descriptions: Record<string, string> = {
+    early: 'establishing your sound and initial audience',
+    building: 'establishing your sound and audience',
+    momentum: 'building momentum with consistent releases',
+    breakout: 'expanding reach and breaking through',
+    pro: 'operating at a professional level'
+  }
+  return descriptions[stage] || 'building your career'
+}
+
 function buildFallbackIntelligence(profile: Profile): CompleteDashboardIntelligence {
   const stage = profile.career_stage || 'building'
   const goal = profile.primary_goal || 'growing your career'
@@ -121,6 +183,7 @@ function buildFallbackIntelligence(profile: Profile): CompleteDashboardIntellige
       'Complete priority task',
       'Check back for next steps',
     ],
+    profileInterpretations: generateFallbackProfileInterpretations(profile),
     source: 'fallback',
   }
 }

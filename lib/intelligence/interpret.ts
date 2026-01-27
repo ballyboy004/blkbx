@@ -29,6 +29,12 @@ export type DashboardIntelligence = {
   strategicContext: string[]
   priorityTask: PriorityTask
   nextActions: string[]
+  profileInterpretations: {
+    goal: string
+    focus: string
+    constraints: string
+    stage: string
+  }
 }
 
 export type InterpretationResult = {
@@ -137,7 +143,12 @@ export async function generateDashboardIntelligence(
         !intelligence.priorityTask.guide.what ||
         !Array.isArray(intelligence.priorityTask.guide.how) ||
         !intelligence.priorityTask.guide.why ||
-        !Array.isArray(intelligence.nextActions)
+        !Array.isArray(intelligence.nextActions) ||
+        !intelligence.profileInterpretations ||
+        !intelligence.profileInterpretations.goal ||
+        !intelligence.profileInterpretations.focus ||
+        !intelligence.profileInterpretations.constraints ||
+        !intelligence.profileInterpretations.stage
       ) {
         console.error('[Intelligence] Invalid structure:', intelligence)
         if (attempt < maxRetries) continue
