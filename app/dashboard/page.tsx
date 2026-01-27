@@ -179,7 +179,9 @@ export default async function DashboardPage() {
 
             {/* PATTERNS CARD */}
             <div className="p-6 sm:p-8 space-y-4" style={cardStyleMedium}>
-              <h2 className={`${headerStyle} mb-6`}>Patterns</h2>
+              <div className="flex justify-between items-start mb-6">
+                <h2 className={headerStyle}>Patterns</h2>
+              </div>
               <div className="space-y-5">
                 <div>
                   <span className={labelStyle}>Edge</span>
