@@ -164,6 +164,7 @@ export default async function DashboardPage() {
               
               {/* Summary */}
               <div className="mb-6">
+                <span className={labelStyle}>Summary</span>
                 <p className={bodyText}>{intelligence.identitySummary || "—"}</p>
               </div>
               
