@@ -25,7 +25,18 @@ export default function CollapsibleSection({ title, children, defaultExpanded = 
       {/* Clickable header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex justify-between items-center min-h-[44px]"
+        className="w-full flex justify-between items-center min-h-[44px] rounded px-1 -mx-1 transition-all"
+        style={{
+          boxShadow: 'none',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = 'none'
+          e.currentTarget.style.backgroundColor = 'transparent'
+        }}
       >
         <h2 className="font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500">
           {title}

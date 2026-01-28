@@ -550,8 +550,25 @@ export default function OnboardingClient({
               type="button"
               onClick={handleBack}
               variant="ghost"
-              className="h-11 px-3 text-zinc-700 hover:text-zinc-500 hover:bg-transparent font-mono text-sm tracking-tight lowercase"
+              className="h-11 px-3 text-zinc-700 font-mono text-sm tracking-tight lowercase transition-all"
               disabled={panelIndex === 0}
+              style={{
+                boxShadow: panelIndex === 0 ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (panelIndex !== 0) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (panelIndex !== 0) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = 'rgba(63, 63, 70, 1)'
+                }
+              }}
             >
               back
             </Button>
@@ -561,7 +578,26 @@ export default function OnboardingClient({
               onClick={handleContinue}
               variant="outline"
               disabled={isFinishing || isGeneratingFollowUps}
-              className="flex-1 h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-11 bg-transparent border-zinc-800 text-zinc-300 transition-all font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                boxShadow: (isFinishing || isGeneratingFollowUps) ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isFinishing && !isGeneratingFollowUps) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
+                  e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isFinishing && !isGeneratingFollowUps) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.borderColor = 'rgba(39, 39, 42, 0.8)'
+                  e.currentTarget.style.color = 'rgba(212, 212, 216, 1)'
+                }
+              }}
             >
               {isFinishing ? "finishing..." : isGeneratingFollowUps ? "thinking..." : panelIndex === 4 ? "finish" : "continue"}
             </Button>
@@ -570,7 +606,20 @@ export default function OnboardingClient({
               type="button"
               onClick={handleSkip}
               variant="ghost"
-              className="h-11 px-6 text-zinc-600 hover:text-zinc-400 hover:bg-transparent font-mono text-sm tracking-tight lowercase"
+              className="h-11 px-6 text-zinc-600 font-mono text-sm tracking-tight lowercase transition-all"
+              style={{
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'rgba(82, 82, 91, 1)'
+              }}
             >
               skip
             </Button>
@@ -674,11 +723,36 @@ function StagePill({
       type="button"
       onClick={onClick}
       className={[
-        "h-10 px-4 rounded-md border transition-colors font-mono text-sm tracking-tight lowercase",
+        "h-10 px-4 rounded-md border transition-all font-mono text-sm tracking-tight lowercase",
         active
           ? "bg-zinc-900/40 border-zinc-600 text-white"
-          : "bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700",
+          : "bg-transparent border-zinc-800 text-zinc-400",
       ].join(" ")}
+      style={{
+        boxShadow: active ? 'inset 0 1px 2px rgba(0, 0, 0, 0.3)' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+      }}
+      onMouseEnter={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.5)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+          e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
+          e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.4)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(39, 39, 42, 0.8)'
+          e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+        }
+      }}
     >
       {children}
     </button>
@@ -699,11 +773,36 @@ function ActivityPill({
       type="button"
       onClick={onClick}
       className={[
-        "px-4 py-2.5 rounded-md border transition-colors font-mono text-xs tracking-tight lowercase",
+        "px-4 py-2.5 rounded-md border transition-all font-mono text-xs tracking-tight lowercase min-h-[44px]",
         active
           ? "bg-zinc-900/40 border-zinc-600 text-white"
-          : "bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700",
+          : "bg-transparent border-zinc-800 text-zinc-400",
       ].join(" ")}
+      style={{
+        boxShadow: active ? 'inset 0 1px 2px rgba(0, 0, 0, 0.3)' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+      }}
+      onMouseEnter={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.5)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+          e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
+          e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.4)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(39, 39, 42, 0.8)'
+          e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+        }
+      }}
     >
       {children}
     </button>

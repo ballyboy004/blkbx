@@ -195,7 +195,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               </span>
               <h2 className="font-mono text-[13px] font-semibold text-white truncate">{selectedPastTask.title}</h2>
             </div>
-            <button onClick={() => setSelectedPastTask(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <button 
+              onClick={() => setSelectedPastTask(null)} 
+              className="text-zinc-500 hover:text-zinc-300 transition-all flex-shrink-0 ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
+              style={{
+                boxShadow: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'none'
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -239,7 +253,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-start justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
             <h2 className="font-mono text-[14px] font-semibold text-white flex-1 pr-2">{task.title}</h2>
-            <button onClick={() => setShowGuideModal(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <button 
+              onClick={() => setShowGuideModal(false)} 
+              className="text-zinc-500 hover:text-zinc-300 transition-all flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
+              style={{
+                boxShadow: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'none'
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -261,7 +289,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             <div><h3 className={labelStyle}>Why This Works For You</h3><p className={bodyText}>{task.guide.why}</p></div>
           </div>
           <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
-            <button onClick={() => setShowGuideModal(false)} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors min-h-[44px]">
+            <button 
+              onClick={() => setShowGuideModal(false)} 
+              className="w-full py-3 bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all min-h-[44px]"
+              style={{
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.6)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.8)'
+              }}
+            >
               Close
             </button>
           </div>
@@ -309,7 +351,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         <h2 className={`${headerStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
           <p className="font-mono text-[12px] text-zinc-400">Could not generate task</p>
-          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors">
+          <button 
+            onClick={() => fetchNewTask()} 
+            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all min-h-[44px]"
+            style={{
+              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+              e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+              e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.5)'
+            }}
+          >
             Retry
           </button>
         </div>
@@ -349,7 +405,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         <h2 className={`${headerStyle} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-4">
           <p className="font-mono text-[12px] text-zinc-400">No task available</p>
-          <button onClick={() => fetchNewTask()} className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors">
+          <button 
+            onClick={() => fetchNewTask()} 
+            className="px-4 py-2 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all min-h-[44px]"
+            style={{
+              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+              e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+              e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.5)'
+            }}
+          >
             Generate Task
           </button>
         </div>
@@ -372,7 +442,18 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               <div className="relative">
                 <button
                   onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 min-h-[44px]"
+                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-all px-3 py-2 min-h-[44px]"
+                  style={{
+                    boxShadow: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
                 >
                   History
                 </button>
@@ -386,7 +467,21 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           <div className="flex items-start justify-between gap-4">
             <p className="font-mono text-[14px] font-semibold text-white">✓ {task.title}</p>
             {task.guide && (
-              <button onClick={() => setShowGuideModal(true)} className="flex-shrink-0 font-mono text-[9px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors px-2 py-2 min-h-[44px]">
+              <button 
+                onClick={() => setShowGuideModal(true)} 
+                className="flex-shrink-0 font-mono text-[9px] tracking-[0.1em] uppercase text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-all px-2 py-2 min-h-[44px]"
+                style={{
+                  boxShadow: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                }}
+              >
                 Guide
               </button>
             )}
@@ -415,11 +510,13 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               onMouseEnter={(e) => {
                 if (!isSubmitting) {
                   e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSubmitting) {
                   e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
                 }
               }}
             >
@@ -428,20 +525,20 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             <button 
               onClick={handleCompleteWithReflection} 
               disabled={isSubmitting} 
-              className="flex-1 py-3 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white hover:bg-zinc-700/50 transition-colors disabled:opacity-50 min-h-[44px]"
+              className="flex-1 py-3 bg-zinc-800/50 border border-zinc-600/50 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors disabled:opacity-50 min-h-[44px]"
               style={{
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                boxShadow: isSubmitting ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting) {
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2)'
-                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.4)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSubmitting) {
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)'
-                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.5)'
                 }
               }}
             >
@@ -477,12 +574,23 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         <div className="flex items-center gap-2 sm:gap-4">
           {recentTasks.length > 0 && (
             <div className="relative">
-              <button
-                onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-                className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-2 min-h-[44px]"
-              >
-                History
-              </button>
+                <button
+                  onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
+                  className="font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 hover:text-zinc-300 transition-all px-2 py-2 min-h-[44px]"
+                  style={{
+                    boxShadow: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                >
+                  History
+                </button>
               <HistoryDropdown />
             </div>
           )}
@@ -498,12 +606,14 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
                 if (!isLoading) {
                   e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isLoading) {
                   e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
                 }
               }}
             >

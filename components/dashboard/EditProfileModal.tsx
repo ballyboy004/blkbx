@@ -111,7 +111,20 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
       {/* Trigger button */}
       <button
         onClick={handleOpen}
-        className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+        className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+        style={{
+          boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+        }}
       >
         Edit
       </button>
@@ -138,7 +151,22 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-50 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="text-zinc-500 hover:text-zinc-300 transition-all disabled:opacity-50 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
+                style={{
+                  boxShadow: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -288,14 +316,44 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="flex-1 py-3 bg-transparent hover:bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 transition-colors disabled:opacity-50 min-h-[44px]"
+                className="flex-1 py-3 bg-transparent border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 transition-all disabled:opacity-50 min-h-[44px]"
+                style={{
+                  boxShadow: isSaving ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-3 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors disabled:opacity-50 min-h-[44px]"
+                className="flex-1 py-3 bg-zinc-700 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all disabled:opacity-50 min-h-[44px]"
+                style={{
+                  boxShadow: isSaving ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                    e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.6)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSaving) {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                    e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.7)'
+                  }
+                }}
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -330,11 +388,36 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-3 rounded-md border transition-colors font-mono text-[11px] tracking-tight min-h-[44px] ${
+      className={`px-4 py-3 rounded-md border transition-all font-mono text-[11px] tracking-tight min-h-[44px] ${
         active
           ? 'bg-zinc-700/50 border-zinc-500 text-white'
-          : 'bg-transparent border-zinc-700 text-zinc-400 hover:bg-zinc-800/50 hover:text-white hover:border-zinc-600'
+          : 'bg-transparent border-zinc-700 text-zinc-400'
       }`}
+      style={{
+        boxShadow: active ? 'inset 0 1px 2px rgba(0, 0, 0, 0.3)' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+      }}
+      onMouseEnter={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.4)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+          e.currentTarget.style.borderColor = 'rgba(113, 113, 122, 0.6)'
+          e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (active) {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.5)'
+        } else {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
+          e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+        }
+      }}
     >
       {children}
     </button>

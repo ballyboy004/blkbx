@@ -94,7 +94,26 @@ function SignupForm() {
           type="submit"
           variant="outline"
           disabled={loading}
-          className="w-full h-11 bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-900/30 hover:text-white hover:border-zinc-700 transition-colors font-inter font-black tracking-tight lowercase disabled:opacity-60"
+          className="w-full h-11 bg-transparent border-zinc-800 text-zinc-300 transition-all font-inter font-black tracking-tight lowercase disabled:opacity-60"
+          style={{
+            boxShadow: loading ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+              e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+              e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
+              e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading) {
+              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.borderColor = 'rgba(39, 39, 42, 0.8)'
+              e.currentTarget.style.color = 'rgba(212, 212, 216, 1)'
+            }
+          }}
         >
           {loading ? "creating…" : "create."}
         </Button>

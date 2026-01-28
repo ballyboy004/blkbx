@@ -30,7 +30,18 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
       {/* Clickable task title */}
       <button
         onClick={() => setIsOpen(true)}
-        className="text-left w-full group min-h-[44px] flex items-center"
+        className="text-left w-full group min-h-[44px] flex items-center rounded px-1 -mx-1"
+        style={{
+          boxShadow: 'none',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = 'none'
+          e.currentTarget.style.backgroundColor = 'transparent'
+        }}
       >
         <p className="font-mono text-[13px] font-semibold text-white group-hover:underline decoration-zinc-600 underline-offset-4 transition-all duration-150">
           {task.title}
@@ -58,7 +69,18 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="text-zinc-500 hover:text-zinc-300 transition-all flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
+                style={{
+                  boxShadow: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -108,7 +130,18 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-colors min-h-[44px]"
+                className="w-full py-3 bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all min-h-[44px]"
+                style={{
+                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.6)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.8)'
+                }}
               >
                 Close
               </button>

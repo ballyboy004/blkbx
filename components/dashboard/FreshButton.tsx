@@ -37,7 +37,24 @@ export default function FreshButton() {
     <button
       onClick={handleRefresh}
       disabled={isRefreshing}
-      className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] hover:bg-white/10 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+      className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+      style={{
+        boxShadow: isRefreshing ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+      }}
+      onMouseEnter={(e) => {
+        if (!isRefreshing) {
+          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isRefreshing) {
+          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+        }
+      }}
     >
       {isRefreshing ? 'Refreshing...' : 'Refresh'}
     </button>
