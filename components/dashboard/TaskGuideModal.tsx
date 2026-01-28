@@ -32,7 +32,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
         onClick={() => setIsOpen(true)}
         className="text-left w-full min-h-[44px] flex items-center rounded px-1 -mx-1"
       >
-        <p className="font-mono text-[13px] font-semibold text-white hover:text-zinc-300 transition-colors duration-150">
+        <p className="font-mono text-[18px] font-bold text-white hover:text-zinc-300 transition-colors duration-150 leading-tight">
           {task.title}
         </p>
       </button>
