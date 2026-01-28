@@ -30,20 +30,9 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
       {/* Clickable task title */}
       <button
         onClick={() => setIsOpen(true)}
-        className="text-left w-full group min-h-[44px] flex items-center rounded px-1 -mx-1"
-        style={{
-          boxShadow: 'none',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = 'none'
-          e.currentTarget.style.backgroundColor = 'transparent'
-        }}
+        className="text-left w-full min-h-[44px] flex items-center rounded px-1 -mx-1"
       >
-        <p className="font-mono text-[13px] font-semibold text-white group-hover:underline decoration-zinc-600 underline-offset-4 transition-all duration-150">
+        <p className="font-mono text-[13px] font-semibold text-white hover:text-zinc-300 transition-colors duration-150">
           {task.title}
         </p>
       </button>
