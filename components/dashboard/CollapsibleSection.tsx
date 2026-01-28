@@ -21,11 +21,11 @@ export default function CollapsibleSection({ title, children, defaultExpanded = 
   }
   
   return (
-    <div className="p-8" style={cardStyle}>
+    <div className="p-6 sm:p-8" style={cardStyle}>
       {/* Clickable header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex justify-between items-center"
+        className="w-full flex justify-between items-center min-h-[44px]"
       >
         <h2 className="font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500">
           {title}

@@ -30,7 +30,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
       {/* Clickable task title */}
       <button
         onClick={() => setIsOpen(true)}
-        className="text-left w-full group"
+        className="text-left w-full group min-h-[44px] flex items-center"
       >
         <p className="font-mono text-[13px] font-semibold text-white group-hover:underline decoration-zinc-600 underline-offset-4 transition-all duration-150">
           {task.title}
