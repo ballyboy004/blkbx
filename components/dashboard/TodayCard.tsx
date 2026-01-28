@@ -615,14 +615,48 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             <button 
               onClick={handleDoneClick} 
               disabled={isLoading || isSubmitting} 
-              className="border border-zinc-700 bg-transparent px-4 py-2 font-mono text-[11px] font-medium tracking-wider uppercase text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
+              className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              style={{
+                boxShadow: (isLoading || isSubmitting) ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
             >
               {isSubmitting ? '...' : 'Done'}
             </button>
             <button 
               onClick={handleAddNote} 
               disabled={isLoading || isSubmitting} 
-              className="border border-zinc-700 bg-transparent px-4 py-2 font-mono text-[11px] font-medium tracking-wider uppercase text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
+              className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              style={{
+                boxShadow: (isLoading || isSubmitting) ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
             >
               + Note
             </button>
