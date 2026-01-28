@@ -176,7 +176,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     border: '1px solid rgba(255, 255, 255, 0.12)',
     borderTop: '1px solid rgba(255, 255, 255, 0.08)',
     borderRadius: '4px',
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.3)'
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.3)',
+    transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease'
   }
 
   const containerPadding = isHero ? "p-6 sm:p-8 md:p-10" : "p-6 sm:p-8"
@@ -552,20 +553,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
 
   // Default task view
   return (
-    <div className={`${containerPadding} space-y-5 transition-all duration-300 group`} style={cardStyle}
-      onMouseEnter={(e) => { 
-        e.currentTarget.style.background = 'rgba(36, 39, 49, 0.5)'
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-        e.currentTarget.style.borderTopColor = 'rgba(255, 255, 255, 0.1)'
-        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.45), 0 20px 40px rgba(0, 0, 0, 0.35)'
-      }}
-      onMouseLeave={(e) => { 
-        e.currentTarget.style.background = 'rgba(26, 26, 26, 0.4)'
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'
-        e.currentTarget.style.borderTopColor = 'rgba(255, 255, 255, 0.08)'
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.3)'
-      }}
-    >
+    <div className={`${containerPadding} space-y-5 transition-all duration-300 group today-card`} style={cardStyle}>
       <PastTaskModal />
       
       {/* Header */}
