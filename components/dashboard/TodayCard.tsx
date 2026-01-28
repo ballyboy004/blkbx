@@ -93,7 +93,29 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     }
   }
 
-  function handleDoneClick() {
+  async function handleDoneClick() {
+    if (isLoading || !task) return
+    setIsSubmitting(true)
+    try {
+      const result = await completeTask({ title: task.title, reasoning: task.reasoning, guardrail: task.guardrail })
+      if (result.success) {
+        setShowSuccess(true)
+        setIsSubmitting(false)
+        setTimeout(async () => {
+          setShowSuccess(false)
+          await fetchNewTask()
+        }, 1200)
+      } else {
+        alert('Failed to complete task.')
+        setIsSubmitting(false)
+      }
+    } catch {
+      alert('An error occurred.')
+      setIsSubmitting(false)
+    }
+  }
+
+  function handleAddNote() {
     if (isLoading || !task) return
     setShowReflection(true)
   }
@@ -582,25 +604,25 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
               <HistoryDropdown />
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <button 
               onClick={handleSkip} 
               disabled={isLoading} 
-              className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              className="bg-transparent border border-white/20 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-zinc-400 text-[8px] px-2 py-1.5 tracking-[0.12em] min-h-[32px]"
               style={{
-                boxShadow: isLoading ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+                boxShadow: isLoading ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
               }}
               onMouseEnter={(e) => {
                 if (!isLoading) {
-                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
-                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.15)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isLoading) {
-                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
                   e.currentTarget.style.backgroundColor = 'transparent'
                 }
               }}
@@ -609,27 +631,53 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             </button>
             <button 
               onClick={handleDoneClick} 
-              disabled={isLoading} 
+              disabled={isLoading || isSubmitting} 
               className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
               style={{
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                boxShadow: (isLoading || isSubmitting) ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.2)',
               }}
               onMouseEnter={(e) => {
-                if (!isLoading) {
+                if (!isLoading && !isSubmitting) {
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2)'
                   e.currentTarget.style.transform = 'translateY(-1px)'
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
                 }
               }}
               onMouseLeave={(e) => {
-                if (!isLoading) {
+                if (!isLoading && !isSubmitting) {
                   e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)'
                   e.currentTarget.style.transform = 'translateY(0)'
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
                 }
               }}
             >
-              Done
+              {isSubmitting ? '...' : 'Done'}
+            </button>
+            <button 
+              onClick={handleAddNote} 
+              disabled={isLoading || isSubmitting} 
+              className="bg-transparent border border-white/20 rounded-sm font-mono font-medium uppercase transition-all disabled:opacity-50 text-zinc-400 text-[8px] px-2 py-1.5 tracking-[0.12em] min-h-[32px]"
+              style={{
+                boxShadow: (isLoading || isSubmitting) ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
+                  e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading && !isSubmitting) {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
+                }
+              }}
+            >
+              + Note
             </button>
           </div>
         </div>
