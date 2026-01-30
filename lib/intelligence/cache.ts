@@ -4,7 +4,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/profile/profile'
-import type { DashboardIntelligence } from './interpret'
+import type { DashboardIntelligence, PriorityTask } from './interpret'
 import crypto from 'crypto'
 
 // IMPORTANT: Increment this when prompts change significantly
@@ -100,7 +100,7 @@ export function isInterpretationStale(
   const now = new Date()
   const ageInDays = (now.getTime() - generatedAt.getTime()) / (1000 * 60 * 60 * 24)
 
-  if (ageInDays > 7) {
+  if (ageInDays > 14) {
     console.log(`[Intelligence] Interpretation stale: ${ageInDays.toFixed(1)} days old`)
     return true
   }
@@ -213,6 +213,34 @@ export async function cacheDashboardIntelligence(
     promptVersion: PROMPT_VERSION,
     cost: `$${cost.toFixed(4)}`,
   })
+}
+
+/**
+ * Update only task-related fields in cache (preserve Current Read and other interpretations)
+ */
+export async function updateTaskOnly(
+  userId: string,
+  priorityTask: PriorityTask,
+  nextActions: string[]
+): Promise<void> {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('interpretations')
+    .update({
+      priority_task_title: priorityTask.title,
+      priority_task_reasoning: priorityTask.reasoning,
+      priority_task_guardrail: priorityTask.guardrail,
+      priority_task_guide: priorityTask.guide,
+      next_actions: nextActions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('[Intelligence] Error updating task in cache:', error)
+    throw error
+  }
+  console.log('[Intelligence] Task-only cache update successful', { userId, taskTitle: priorityTask.title })
 }
 
 /**

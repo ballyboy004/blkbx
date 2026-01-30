@@ -11,6 +11,7 @@ export type TaskHistoryItem = {
   reflection?: string
   reasoning?: string
   guardrail?: string
+  skip_reason?: string
 }
 
 export type BehavioralHistory = {
@@ -40,7 +41,7 @@ export async function getBehavioralHistory(
   try {
     const { data: tasks, error: tasksError } = await supabase
       .from('tasks')
-      .select('id, title, task_name, status, completed_at, reflection, reasoning, guardrail')
+      .select('id, title, task_name, status, completed_at, reflection, reasoning, guardrail, skip_reason')
       .eq('user_id', userId)
       .order('completed_at', { ascending: false })
       .limit(limit)
@@ -67,7 +68,8 @@ export async function getBehavioralHistory(
       completed_at: task.completed_at,
       reflection: task.reflection || undefined,
       reasoning: task.reasoning || undefined,
-      guardrail: task.guardrail || undefined
+      guardrail: task.guardrail || undefined,
+      skip_reason: (task as { skip_reason?: string }).skip_reason || undefined
     }))
 
     const completed = recentTasks.filter(t => t.status === 'done').length
@@ -108,6 +110,45 @@ function emptyHistory(): BehavioralHistory {
     taskStats: { completed: 0, skipped: 0, completionRate: 0 },
     recentReflections: [],
     patterns: { completedTypes: [], skippedTypes: [] }
+  }
+}
+
+export type TaskCompletionStats = {
+  completed: number
+  skipped: number
+  completionRate: number
+  skipReasonCounts: Record<string, number>
+}
+
+/**
+ * Query task completion stats for the current user (all-time).
+ * Used for dashboard display and intelligence context.
+ */
+export async function getTaskCompletionStats(userId: string): Promise<TaskCompletionStats> {
+  const supabase = await createClient()
+  try {
+    const [doneRes, skippedRes, skippedReasonsRes] = await Promise.all([
+      supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'done'),
+      supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'skipped'),
+      supabase.from('tasks').select('skip_reason').eq('user_id', userId).eq('status', 'skipped').not('skip_reason', 'is', null)
+    ])
+    const completed = doneRes.count ?? 0
+    const skipped = skippedRes.count ?? 0
+    const total = completed + skipped
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+    const skipReasonCounts: Record<string, number> = {}
+    if (skippedReasonsRes.data) {
+      for (const row of skippedReasonsRes.data) {
+        const r = (row as { skip_reason?: string }).skip_reason?.trim()
+        if (r) {
+          skipReasonCounts[r] = (skipReasonCounts[r] ?? 0) + 1
+        }
+      }
+    }
+    return { completed, skipped, completionRate, skipReasonCounts }
+  } catch (error) {
+    console.error('[History] getTaskCompletionStats error:', error)
+    return { completed: 0, skipped: 0, completionRate: 0, skipReasonCounts: {} }
   }
 }
 
@@ -152,6 +193,18 @@ export function formatHistoryForPrompt(history: BehavioralHistory): string {
     skippedTasks.slice(0, 3).forEach(task => {
       lines.push(`  ✗ "${task.title}"`)
     })
+    lines.push('')
+  }
+
+  // Skip reasons - adjust next task accordingly
+  const skipReasons = skippedTasks
+    .map(t => t.skip_reason)
+    .filter((r): r is string => !!r?.trim())
+    .slice(0, 10)
+  if (skipReasons.length > 0) {
+    lines.push('USER RECENTLY SKIPPED TASKS BECAUSE:')
+    lines.push(skipReasons.map(r => `  • ${r}`).join('\n'))
+    lines.push('Adjust accordingly (e.g. smaller scope, different type, or complementary angle).')
     lines.push('')
   }
 

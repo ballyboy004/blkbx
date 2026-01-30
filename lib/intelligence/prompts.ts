@@ -4,7 +4,7 @@
 import type { Profile } from '@/lib/profile/profile'
 import { buildBLACKBOXSystemPrompt, addBehavioralHistoryContext } from './framework'
 import { routeTask, getTaskTypeInstructions, type TaskRoute } from './routing'
-import type { BehavioralHistory } from './history'
+import { formatHistoryForPrompt, type BehavioralHistory } from './history'
 
 /**
  * Builds the system prompt for Complete Dashboard Intelligence
@@ -57,7 +57,8 @@ ${getSkipGuidance(history || emptyHistory)}
 Generate dashboard intelligence as JSON:`
 
   const systemPrompt = buildBLACKBOXSystemPrompt('dashboard', profile, additionalInstructions)
-  return addBehavioralHistoryContext(systemPrompt, formattedHistory)
+  const completionStats = history ? { completed: history.taskStats.completed, skipped: history.taskStats.skipped, completionRate: history.taskStats.completionRate } : undefined
+  return addBehavioralHistoryContext(systemPrompt, formattedHistory, completionStats)
 }
 
 /**
@@ -161,6 +162,57 @@ Make tasks MUCH simpler and more aligned with demonstrated strengths.`
   }
   
   return ''
+}
+
+/**
+ * Build prompt for task-only generation (preserves Current Read)
+ */
+export function buildTaskOnlyPrompt(
+  profile: Profile,
+  route: { type: string; reason: string },
+  history?: BehavioralHistory
+): string {
+  const formattedHistory = history ? formatHistoryForPrompt(history) : ''
+
+  return `You are BLACKBOX generating ONE task for an independent artist.
+
+ARTIST:
+- Genre: ${profile.genre_sound || 'not specified'}
+- Stage: ${profile.career_stage || 'building'}
+- Goal (90 days): ${profile.primary_goal || 'not specified'}
+- Focus (30 days): ${profile.current_focus || 'not specified'}
+- Strengths: ${profile.strengths || 'not specified'}
+- Weaknesses: ${profile.weaknesses || 'not specified'}
+- Constraints: ${profile.constraints || 'not specified'}
+- Stuck on: ${profile.stuck_on || 'not specified'}
+- Content activity: ${profile.content_activity || 'not specified'}
+- Release status: ${profile.release_status || 'not specified'}
+
+TASK TYPE: ${route.type}
+WHY THIS TYPE: ${route.reason}
+
+${formattedHistory ? `RECENT BEHAVIOR:\n${formattedHistory}\n` : ''}
+
+Generate a specific, actionable task personalized to THIS artist.
+Reference their genre, constraints, or strengths by name.
+
+RULES:
+- Every sentence must be complete — no trailing "..." or unfinished thoughts
+- If you lack context, be direct: "We need to understand X" not "Understanding what feels off..."
+- Be concrete and specific, never vague
+- If the artist said "already doing this" — ask WHAT specifically they're doing, don't speculate
+
+Return ONLY valid JSON (no markdown):
+{
+  "title": "specific action (5-10 words)",
+  "reasoning": "why this matters for THIS artist right now (reference their specific situation)",
+  "guardrail": "one constraint to keep it focused",
+  "guide": {
+    "what": "what they're actually doing",
+    "how": ["step 1", "step 2", "step 3"],
+    "why": "why this approach works for their situation"
+  }
+}`
 }
 
 // Export routing for use elsewhere

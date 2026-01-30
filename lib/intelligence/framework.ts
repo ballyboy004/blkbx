@@ -277,7 +277,7 @@ OUTPUT FORMAT (JSON):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {
-  "currentRead": "2-3 sentences identifying their core strategic tension. Name what they want vs what's blocking them. Reference their specific constraints or use their exact language.",
+  "currentRead": "A grounded 2-3 sentence strategic snapshot of WHERE THIS ARTIST IS RIGHT NOW. Base this ONLY on their profile data: career stage, genre, primary goal, and core tension (what's blocking them from their goal). Do NOT reference tasks, recent actions, or behavioral history. This is a strategic mirror — stable and broad. Example: 'You're a trap producer at the building stage, focused on growing your own fanbase rather than chasing placements. You're getting views on content but struggling to convert them into followers — bridging that gap is your main tension right now.'",
   
   "identitySummary": "2-3 sentences — who they are, their sound/genre, career stage, primary goal, and release/content style. Use second-person, observational voice. Example: 'You're a dark R&B producer at the building stage. Your sound sits between The Weeknd and ambient electronics. You release regularly and post content sometimes, focused on consistent releases to build momentum.'",
   
@@ -413,13 +413,20 @@ QUALITY CHECK:
   }
 }
 
+export type CompletionStatsForPrompt = {
+  completed: number
+  skipped: number
+  completionRate: number
+}
+
 /**
  * Add behavioral history context with intelligence on HOW to use it
  * This teaches the AI to learn from patterns, not just see data
  */
 export function addBehavioralHistoryContext(
   systemPrompt: string, 
-  behavioralHistory?: string
+  behavioralHistory?: string,
+  completionStats?: CompletionStatsForPrompt
 ): string {
   if (!behavioralHistory) {
     return systemPrompt + `
@@ -434,8 +441,19 @@ This is a new user. Generate a starting task appropriate for:
 - Their content activity level
 - Their aesthetic/approach`
   }
+
+  const completionBlock = completionStats
+    ? `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPLETION CONTEXT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+User has completed ${completionStats.completed} tasks (${completionStats.completionRate}% completion rate). Adjust difficulty accordingly: if rate is low (<40%), prefer smaller steps; if high (>80%), you can suggest more ambitious tasks.
+`
+    : ''
   
-  return systemPrompt + `
+  return systemPrompt + completionBlock + `
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BEHAVIORAL HISTORY:

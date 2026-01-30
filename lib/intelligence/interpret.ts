@@ -2,7 +2,7 @@
 // Main interpretation service with routing-based task generation
 
 import type { Profile } from '@/lib/profile/profile'
-import { buildDashboardIntelligencePrompt } from './prompts'
+import { buildDashboardIntelligencePrompt, buildTaskOnlyPrompt } from './prompts'
 import { generateWithClaude, calculateCost } from './claude'
 import { validateCurrentRead } from './validate'
 import { getBehavioralHistory, formatHistoryForPrompt, type BehavioralHistory } from './history'
@@ -186,6 +186,39 @@ export async function generateDashboardIntelligence(
   }
 
   throw new Error('Failed to generate dashboard intelligence after max retries')
+}
+
+/**
+ * Generate ONLY a new task — preserves Current Read
+ */
+export async function generateTaskOnly(
+  profile: Profile,
+  history?: BehavioralHistory
+): Promise<{ task: PriorityTask; usage: { inputTokens: number; outputTokens: number }; cost: number }> {
+  const route = history ? routeTask(profile, history) : routeTask(profile, {
+    recentTasks: [],
+    taskStats: { completed: 0, skipped: 0, completionRate: 0 },
+    recentReflections: [],
+    patterns: { completedTypes: [], skippedTypes: [] }
+  })
+
+  console.log('[Intelligence] Task-only generation:', route.type)
+
+  const prompt = buildTaskOnlyPrompt(profile, route, history)
+
+  const { text, usage } = await generateWithClaude(prompt, {
+    maxTokens: 400,
+    temperature: 0.3,
+  })
+
+  const cleanedText = text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '')
+  const task = JSON.parse(cleanedText) as PriorityTask
+
+  return {
+    task,
+    usage,
+    cost: calculateCost(usage),
+  }
 }
 
 /**

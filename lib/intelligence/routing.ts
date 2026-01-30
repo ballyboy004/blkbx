@@ -25,7 +25,8 @@ export type TaskType =
   // Adaptation flow (when skipping patterns emerge)
   | 'reflection-prompt'       // Skipped 3+ tasks → ask why
   | 'alternative-approach'    // Pattern shows strength elsewhere → lean into it
-  
+  | 'smaller-scope'           // "Too big" 2+ → single small step or break-down
+
   // Default
   | 'strategic-planning'      // Unclear situation → planning task
 
@@ -42,6 +43,14 @@ export type TaskRoute = {
       types: string[]
       shouldAdapt: boolean
     }
+    skipReasons: {
+      recent: string[]
+      tooBigCount: number
+      notRelevantCount: number
+      alreadyDoingCount: number
+    }
+    completionRate: number
+    totalTasks: number
   }
 }
 
@@ -62,15 +71,21 @@ export function routeTask(
   const lastCompleted = history.recentTasks.find(t => t.status === 'done')
   const lastCompletedTask = lastCompleted?.title || null
   
-  // Analyze skip pattern
+  // Analyze skip pattern and completion stats
   const skipPattern = analyzeSkipPattern(history)
-  
+  const skipReasons = getSkipReasonCounts(history)
+  const totalTasks = history.taskStats.completed + history.taskStats.skipped
+  const completionRate = history.taskStats.completionRate
+
   const context = {
     contentActivity,
     releaseStatus,
     stuckOn,
     lastCompletedTask,
-    skipPattern
+    skipPattern,
+    skipReasons,
+    completionRate,
+    totalTasks
   }
 
   // PRIORITY 0: Handle high skip rate (3+ skips or <40% completion rate)
@@ -78,6 +93,31 @@ export function routeTask(
     return {
       type: 'reflection-prompt',
       reason: `User has skipped ${history.taskStats.skipped} tasks (${history.taskStats.completionRate}% completion). Need to understand what's blocking them.`,
+      context
+    }
+  }
+
+  // PRIORITY 0.5: Skip reason signals — route before progression
+  if (skipReasons.tooBigCount >= 2) {
+    return {
+      type: 'smaller-scope',
+      reason: `User skipped 2+ tasks as "Too big / need to break down". Prefer one small, single-step task or a clear break-down.`,
+      context
+    }
+  }
+  if (skipReasons.notRelevantCount >= 2) {
+    return {
+      type: 'alternative-approach',
+      reason: `User skipped 2+ tasks as "Not relevant right now". Try a different task category or angle.`,
+      context
+    }
+  }
+
+  // PRIORITY 0.6: Low completion rate → route to easier/smaller tasks
+  if (completionRate < 40 && totalTasks >= 5) {
+    return {
+      type: 'smaller-scope',
+      reason: `User has low completion rate (${completionRate}%). Prefer one clear, small step to build momentum.`,
       context
     }
   }
@@ -151,6 +191,23 @@ export function routeTask(
     reason: 'Unclear situation - generate strategic planning task',
     context
   }
+}
+
+/**
+ * Derive skip reason counts from recent skipped tasks
+ */
+function getSkipReasonCounts(history: BehavioralHistory): {
+  recent: string[]
+  tooBigCount: number
+  notRelevantCount: number
+  alreadyDoingCount: number
+} {
+  const skipped = history.recentTasks.filter(t => t.status === 'skipped' && t.skip_reason?.trim())
+  const recent = skipped.map(t => t.skip_reason!.trim()).slice(0, 10)
+  const tooBigCount = recent.filter(r => r.toLowerCase().includes('too big')).length
+  const notRelevantCount = recent.filter(r => r.toLowerCase().includes('not relevant')).length
+  const alreadyDoingCount = recent.filter(r => r.toLowerCase().includes('already doing')).length
+  return { recent, tooBigCount, notRelevantCount, alreadyDoingCount }
 }
 
 /**
@@ -321,6 +378,8 @@ Current State:
 ${context.stuckOn ? `- Where they feel stuck: "${context.stuckOn}"` : ''}
 ${context.lastCompletedTask ? `- Last completed: "${context.lastCompletedTask}"` : '- No completed tasks yet'}
 ${context.skipPattern.count > 0 ? `- Skip pattern: ${context.skipPattern.count} skipped (${context.skipPattern.types.slice(0, 2).join(', ')})` : ''}
+${context.skipReasons.recent.length > 0 ? `- Skip reasons: ${context.skipReasons.recent.slice(0, 3).join('; ')}` : ''}
+${context.totalTasks > 0 ? `- Completion: ${context.completionRate}% (${history.taskStats.completed} done, ${history.taskStats.skipped} skipped)` : ''}
 
 Recommended Task Category: ${type}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -332,6 +391,8 @@ Given this routing recommendation, generate a ${type} task that:
 4. Is specific to THEIR aesthetic/situation (not generic)
 ${context.lastCompletedTask ? '5. Builds directly on their last completed task' : ''}
 ${context.skipPattern.count >= 2 ? '6. AVOIDS approaches they consistently skip' : ''}
+${context.completionRate > 80 && context.totalTasks >= 5 ? '7. User has high completion rate — you can suggest a slightly more ambitious task scope.' : ''}
+${context.completionRate < 40 && context.totalTasks >= 5 ? '7. User has low completion rate — keep this task to ONE clear, small step.' : ''}
 `
 
   const typeGuidance = getTypeSpecificGuidance(type, history)
@@ -421,6 +482,13 @@ For REFLECTION PROMPT (they've skipped 3+ tasks):
 Example: "You've skipped filming tasks - what's making visual content feel hard?"
   
 CRITICAL: This is a reflection PROMPT, not a task.`,
+
+    'smaller-scope': `${aestheticReminder}
+For SMALLER SCOPE (user skipped 2+ as "Too big / need to break down"):
+- ONE clear, small step — not a multi-step task
+- Break down into a single sub-step they can do in one sitting
+- MANDATORY: Reference their aesthetic/genre BY NAME
+Example: "Film one 15-second clip of you layering a beat - moody, dark R&B vibe" (not "film 3 clips and edit and post")`,
 
     'alternative-approach': `${aestheticReminder}
 For ALTERNATIVE APPROACH (strength pattern detected):

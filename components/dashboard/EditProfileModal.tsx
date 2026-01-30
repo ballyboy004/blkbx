@@ -4,14 +4,13 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { updateProfile, type ProfileUpdateData } from '@/app/dashboard/actions/profile'
+import { typography } from '@/lib/typography'
+
+const inputStyle = `w-full rounded-md bg-zinc-800/50 border border-zinc-700 placeholder:text-zinc-600 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 px-3 py-2 ${typography.input}`
 
 type CareerStage = 'early' | 'building' | 'momentum' | 'breakout' | 'pro'
 type ContentActivity = 'regular' | 'sometimes' | 'rarely' | 'never'
 type ReleaseStatus = 'regular' | 'few' | 'unreleased' | 'first'
-
-// Typography
-const inputStyle = "w-full rounded-md bg-zinc-800/50 border border-zinc-700 text-zinc-300 placeholder:text-zinc-600 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 font-mono text-[13px] tracking-normal px-3 py-2"
-const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500"
 
 type EditProfileModalProps = {
   profile: {
@@ -111,20 +110,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
       {/* Trigger button */}
       <button
         onClick={handleOpen}
-        className="bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase transition-all duration-[120ms] text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
-        style={{
-          boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.2)'
-          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-          e.currentTarget.style.backgroundColor = 'transparent'
-          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
-        }}
+        className="btn-recess bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
       >
         Edit
       </button>
@@ -140,7 +126,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
+            className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -151,22 +137,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="text-zinc-500 hover:text-zinc-300 transition-all disabled:opacity-50 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
-                style={{
-                  boxShadow: 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'none'
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                  }
-                }}
+                className="btn-recess text-zinc-500 disabled:opacity-50 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -316,44 +287,14 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="flex-1 py-3 bg-transparent border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 transition-all disabled:opacity-50 min-h-[44px]"
-                style={{
-                  boxShadow: isSaving ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-                    e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                  }
-                }}
+                className="btn-recess flex-1 py-3 bg-transparent border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 disabled:opacity-50 min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-3 bg-zinc-700 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all disabled:opacity-50 min-h-[44px]"
-                style={{
-                  boxShadow: isSaving ? 'none' : 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-                    e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.6)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSaving) {
-                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                    e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.7)'
-                  }
-                }}
+                className="btn-lift flex-1 py-3 bg-zinc-700 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white disabled:opacity-50 min-h-[44px]"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -369,7 +310,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
 function FieldBlock({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <label className={labelStyle}>{label}</label>
+      <label className={typography.label}>{label}</label>
       {children}
     </div>
   )
@@ -388,36 +329,11 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-3 rounded-md border transition-all font-mono text-[11px] tracking-tight min-h-[44px] ${
+      className={`btn-recess px-4 py-3 rounded-md border font-mono text-[11px] tracking-tight min-h-[44px] ${
         active
           ? 'bg-zinc-700/50 border-zinc-500 text-white'
           : 'bg-transparent border-zinc-700 text-zinc-400'
       }`}
-      style={{
-        boxShadow: active ? 'inset 0 1px 2px rgba(0, 0, 0, 0.3)' : 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
-      }}
-      onMouseEnter={(e) => {
-        if (active) {
-          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-          e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.4)'
-        } else {
-          e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
-          e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
-          e.currentTarget.style.borderColor = 'rgba(113, 113, 122, 0.6)'
-          e.currentTarget.style.color = 'rgba(244, 244, 245, 1)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (active) {
-          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-          e.currentTarget.style.backgroundColor = 'rgba(63, 63, 70, 0.5)'
-        } else {
-          e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
-          e.currentTarget.style.backgroundColor = 'transparent'
-          e.currentTarget.style.borderColor = 'rgba(63, 63, 70, 0.7)'
-          e.currentTarget.style.color = 'rgba(161, 161, 170, 1)'
-        }
-      }}
     >
       {children}
     </button>

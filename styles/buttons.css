@@ -1,0 +1,40 @@
+/* BLACKBOX Button Hover System */
+/* Recess effect = button sinks in on hover (most buttons) */
+/* Lift effect = button raises on hover (primary action like DONE) */
+
+.btn-recess {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: all 120ms ease-out;
+}
+
+.btn-recess:hover:not(:disabled) {
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.btn-recess:disabled {
+  box-shadow: none;
+}
+
+.btn-lift {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 120ms ease-out;
+}
+
+.btn-lift:hover:not(:disabled) {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-lift:disabled {
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-ghost {
+  transition: all 120ms ease-out;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: rgba(161, 161, 170, 1);
+}

@@ -4,8 +4,9 @@
 
 import type { Profile } from '@/lib/profile/profile'
 import type { DashboardIntelligence, PriorityTask } from '@/lib/intelligence/interpret'
-import { getCachedInterpretation, cacheDashboardIntelligence, generateProfileHash } from '@/lib/intelligence/cache'
-import { generateDashboardIntelligence } from '@/lib/intelligence/interpret'
+import { getCachedInterpretation, cacheDashboardIntelligence, updateTaskOnly, generateProfileHash } from '@/lib/intelligence/cache'
+import { generateDashboardIntelligence, generateTaskOnly } from '@/lib/intelligence/interpret'
+import { getBehavioralHistory } from '@/lib/intelligence/history'
 
 export type CompleteDashboardIntelligence = {
   currentRead: string
@@ -25,7 +26,22 @@ export type CompleteDashboardIntelligence = {
   metadata?: {
     generatedAt?: string
     cost?: string
+    updatedAgo?: string
   }
+}
+
+function getRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffMins < 1) return 'just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
 }
 
 /**
@@ -44,6 +60,49 @@ export async function getCompleteDashboardIntelligence(
     // Try cache first
     const cached = await getCachedInterpretation(userId, profile)
     
+    // Partial cache: Current Read exists but task was cleared (e.g. after Done/Skip)
+    if (cached && cached.current_read && !cached.priority_task_title) {
+      console.log('[Dashboard Intelligence] Partial cache — generating task only')
+      const history = await getBehavioralHistory(userId)
+      const { task, cost } = await generateTaskOnly(profile, history ?? undefined)
+      await updateTaskOnly(userId, task, [])
+
+      let profileInterpretations = {
+        goal: '',
+        focus: '',
+        constraints: '',
+        stage: ''
+      }
+      let strategicContext = cached.strategic_context || []
+      if (Array.isArray(cached.strategic_context)) {
+        const profileData = cached.strategic_context.find((item: any) => item?._profileInterpretations)
+        if (profileData?._profileInterpretations) {
+          profileInterpretations = profileData._profileInterpretations
+          strategicContext = cached.strategic_context.filter((item: any) => !item?._profileInterpretations)
+        }
+      }
+      if (!profileInterpretations.goal) {
+        profileInterpretations = generateFallbackProfileInterpretations(profile)
+      }
+
+      return {
+        currentRead: cached.current_read,
+        identitySummary: cached.identity_summary || '',
+        edge: cached.edge_interpretation || '',
+        friction: cached.friction_interpretation || '',
+        strategicContext,
+        priorityTask: task,
+        nextActions: [],
+        profileInterpretations,
+        source: 'generated',
+        metadata: {
+          generatedAt: cached.generated_at,
+          cost: `$${cost.toFixed(4)}`,
+          updatedAgo: cached.generated_at ? getRelativeTime(cached.generated_at) : undefined,
+        },
+      }
+    }
+
     if (cached && cached.identity_summary && cached.priority_task_title) {
       console.log('[Dashboard Intelligence] Using complete cached interpretation')
       
@@ -89,6 +148,7 @@ export async function getCompleteDashboardIntelligence(
         metadata: {
           generatedAt: cached.generated_at,
           cost: `$${cached.cost_usd}`,
+          updatedAgo: cached.generated_at ? getRelativeTime(cached.generated_at) : undefined,
         },
       }
     }
@@ -111,6 +171,7 @@ export async function getCompleteDashboardIntelligence(
       source: 'generated',
       metadata: {
         cost: `$${result.cost.toFixed(4)}`,
+        updatedAgo: 'just now',
       },
     }
   } catch (error) {

@@ -1,14 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/geist-mono";
+@import "../styles/buttons.css";
 
 @custom-variant dark (&:is(.dark *));
 
 /* Tailwind v4 Theme Configuration */
 @theme {
-  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-geist), system-ui, sans-serif;
 }
 
 :root {
+  --font-geist-mono: "Geist Mono Variable", ui-monospace, monospace;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,10 +83,21 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Normalize font rendering across browsers */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Safari-specific font weight fix */
+@supports (-webkit-hyphens: none) {
+  button, span, p {
+    font-synthesis: none;
+  }
 }
 
 .today-card:hover {

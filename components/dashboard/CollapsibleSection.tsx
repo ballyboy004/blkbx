@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { typography } from '@/lib/typography'
 
 interface CollapsibleSectionProps {
   title: string
@@ -38,7 +39,7 @@ export default function CollapsibleSection({ title, children, defaultExpanded = 
           e.currentTarget.style.backgroundColor = 'transparent'
         }}
       >
-        <h2 className="font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500">
+        <h2 className={typography.cardHeader}>
           {title}
         </h2>
         <span 
@@ -58,7 +59,7 @@ export default function CollapsibleSection({ title, children, defaultExpanded = 
           marginTop: isExpanded ? '16px' : '0'
         }}
       >
-        {children}
+        {children || <p className="font-mono text-[12px] text-zinc-500 italic">Nothing here yet</p>}
       </div>
     </div>
   )

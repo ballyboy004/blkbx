@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/Logo";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -57,9 +58,7 @@ function LoginForm() {
     <>
       {/* Brand Header */}
       <div className="text-center space-y-3">
-        <h1 className="text-7xl font-inter font-black tracking-[-0.08em] text-white lowercase">
-          blackbox<span className="text-5xl">.</span>
-        </h1>
+        <Logo size="md" href="/" />
         <p className="text-[12px] lowercase tracking-tight font-mono text-zinc-500">
           creative intelligence
         </p>
@@ -141,9 +140,7 @@ function LoginFormSkeleton() {
     <>
       {/* Brand Header */}
       <div className="text-center space-y-3">
-        <h1 className="text-7xl font-inter font-black tracking-[-0.08em] text-white lowercase">
-          blackbox<span className="text-5xl">.</span>
-        </h1>
+        <Logo size="md" href="/" />
         <p className="text-[12px] lowercase tracking-tight font-mono text-zinc-500">
           creative intelligence
         </p>

@@ -3,15 +3,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
+import { typography } from '@/lib/typography'
 
 type TaskGuideModalProps = {
   task: PriorityTask
   isHero?: boolean
 }
-
-// Typography constants
-const bodyText = "font-mono text-[13px] font-normal tracking-normal leading-[1.7] text-zinc-300"
-const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
 
 export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -32,9 +29,21 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
         onClick={() => setIsOpen(true)}
         className="text-left w-full min-h-[44px] flex items-center rounded px-1 -mx-1"
       >
-        <p className="font-mono text-[18px] font-bold text-white hover:text-zinc-300 transition-colors duration-150 leading-tight">
-          {task.title}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="font-mono text-[18px] font-bold text-white hover:text-zinc-300 transition-colors duration-150 leading-tight">
+            {task.title}
+          </p>
+          <span
+            className="font-mono text-[9px] tracking-wider uppercase text-zinc-500 rounded inline-flex items-center justify-center"
+            style={{
+              border: '1px solid rgba(63, 63, 70, 1)',
+              padding: '2px 6px',
+              lineHeight: 1,
+            }}
+          >
+            guide
+          </span>
+        </div>
       </button>
 
       {/* Modal overlay */}
@@ -48,7 +57,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-2xl mx-4 sm:mx-0 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -58,18 +67,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300 transition-all flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
-                style={{
-                  boxShadow: 'none',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                  e.currentTarget.style.backgroundColor = 'rgba(24, 24, 27, 0.3)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = 'none'
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                }}
+                className="btn-recess text-zinc-500 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -81,20 +79,20 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
               {/* What */}
               <div className="space-y-2">
-                <h3 className={labelStyle}>What You're Doing</h3>
-                <p className={bodyText}>{task.guide.what}</p>
+                <h3 className={`${typography.label} block mb-2`}>What You're Doing</h3>
+                <p className={typography.body}>{task.guide.what}</p>
               </div>
 
               {/* How */}
               <div className="space-y-3">
-                <h3 className={labelStyle}>How To Do It</h3>
+                <h3 className={`${typography.label} block mb-2`}>How To Do It</h3>
                 <ol className="space-y-3">
                   {task.guide.how.map((step, i) => (
                     <li key={i} className="flex gap-3">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold text-zinc-400">
                         {i + 1}
                       </span>
-                      <p className={`${bodyText} pt-0.5`}>{step}</p>
+                      <p className={`${typography.body} pt-0.5`}>{step}</p>
                     </li>
                   ))}
                 </ol>
@@ -102,15 +100,15 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
 
               {/* Why */}
               <div className="space-y-2">
-                <h3 className={labelStyle}>Why This Works For You</h3>
-                <p className={bodyText}>{task.guide.why}</p>
+                <h3 className={`${typography.label} block mb-2`}>Why This Works For You</h3>
+                <p className={typography.body}>{task.guide.why}</p>
               </div>
 
               {/* Guardrail */}
               <div className="pt-4 border-t border-zinc-800">
                 <div className="bg-zinc-800/50 border border-zinc-700 rounded p-4">
-                  <span className={labelStyle}>Guardrail</span>
-                  <p className={`${bodyText} text-zinc-400`}>{task.guardrail}</p>
+                  <span className={`${typography.label} block mb-2`}>Guardrail</span>
+                  <p className={`${typography.body} text-zinc-400`}>{task.guardrail}</p>
                 </div>
               </div>
             </div>
@@ -119,18 +117,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full py-3 bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white transition-all min-h-[44px]"
-                style={{
-                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.4)'
-                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.6)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.3)'
-                  e.currentTarget.style.backgroundColor = 'rgba(39, 39, 42, 0.8)'
-                }}
+                className="btn-recess w-full py-3 bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white min-h-[44px]"
               >
                 Close
               </button>

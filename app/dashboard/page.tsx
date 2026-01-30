@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Profile } from "@/lib/profile/profile";
 import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
 import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
@@ -8,29 +7,25 @@ import TodayCard from "@/components/dashboard/TodayCard";
 import FreshButton from "@/components/dashboard/FreshButton";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import SignOutButton from "@/components/dashboard/SignOutButton";
+import { Logo } from "@/components/ui/Logo";
+import { typography } from "@/lib/typography";
 
-// Typography constants
-const bodyText = "font-mono text-[13px] font-normal tracking-normal leading-[1.7] text-zinc-300"
-const labelStyle = "font-mono text-[12px] font-semibold tracking-[0.2em] uppercase text-zinc-500 block mb-2"
-const headerStyle = "font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500"
-
-// Card styles with 3D depth
+// Card styles with 3D depth (base = lowest, medium = mid, TODAY card = highest in TodayCard.tsx)
 const cardStyleBase = {
-  background: 'rgba(26, 26, 26, 0.4)',
-  backdropFilter: 'blur(24px) saturate(180%)',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  background: 'rgba(26, 26, 26, 0.35)',
+  backdropFilter: 'blur(20px) saturate(160%)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
   borderRadius: '4px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2)'
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
 }
 
 const cardStyleMedium = {
   background: 'rgba(26, 26, 26, 0.4)',
-  backdropFilter: 'blur(24px) saturate(180%)',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  borderTop: '1px solid rgba(255, 255, 255, 0.07)',
+  backdropFilter: 'blur(24px) saturate(170%)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
   borderRadius: '4px',
-  boxShadow: '0 3px 12px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.25)'
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2)'
 }
 
 export default async function DashboardPage() {
@@ -90,11 +85,7 @@ export default async function DashboardPage() {
           {/* Header */}
           <header className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <Link href="/">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-inter font-black tracking-[-0.08em] text-white lowercase hover:text-zinc-200 transition-colors cursor-pointer">
-                  blackbox<span className="text-2xl sm:text-3xl">.</span>
-                </h1>
-              </Link>
+              <Logo size="md" href="/" />
               <p className="text-xs uppercase tracking-[0.2em] font-mono text-zinc-500">Dashboard</p>
             </div>
 
@@ -124,16 +115,18 @@ export default async function DashboardPage() {
                 }}
               />
               <div className="p-6 sm:p-8 md:p-10" style={cardStyleMedium}>
-                <h2 className={`${headerStyle} mb-6`}>Today</h2>
-                <div className="space-y-4 py-8">
-                  <p className="font-mono text-[13px] text-zinc-500 italic text-center">
-                    No tasks yet
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className={typography.cardHeader}>Today</h2>
+                </div>
+                <div className="py-8 space-y-4 text-center">
+                  <p className={typography.body}>No task yet</p>
+                  <p className="font-mono text-[12px] text-zinc-500">
+                    BLACKBOX is learning your patterns.
+                    <br />
+                    Edit your profile to help it generate better tasks.
                   </p>
-                  <p className={`${bodyText} text-center text-zinc-400`}>
-                    Tasks appear when Blackbox identifies actions based on your situation.
-                  </p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-600 text-center">
-                    → Edit profile to unlock tasks
+                  <p className="font-mono text-[10px] text-zinc-600 mt-4">
+                    ↓ Update your profile below
                   </p>
                 </div>
               </div>
@@ -143,10 +136,17 @@ export default async function DashboardPage() {
           {/* CURRENT READ */}
           <div className="p-6 sm:p-8 md:p-10" style={cardStyleBase}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className={headerStyle}>Current Read</h2>
-              <FreshButton />
+              <h2 className={typography.cardHeader}>Current Read</h2>
+              <div className="flex items-center gap-2 sm:gap-3">
+                {intelligence.metadata?.updatedAgo && (
+                  <span className="font-mono text-[10px] text-zinc-600 lowercase">
+                    {intelligence.metadata.updatedAgo}
+                  </span>
+                )}
+                <FreshButton />
+              </div>
             </div>
-            <p className={bodyText}>{intelligence.currentRead}</p>
+            <p className={typography.body}>{intelligence.currentRead}</p>
           </div>
 
           {/* PROFILE + PATTERNS - 2-COLUMN GRID */}
@@ -155,21 +155,21 @@ export default async function DashboardPage() {
             {/* PROFILE CARD */}
             <div className="p-6 sm:p-8" style={cardStyleMedium}>
               <div className="flex justify-between items-center mb-6 h-[44px]">
-                <h2 className={headerStyle}>Profile</h2>
+                <h2 className={typography.cardHeader}>Profile</h2>
                 <EditProfileModal profile={profile} />
               </div>
               <div className="space-y-5">
                 <div>
-                  <span className={labelStyle}>Summary</span>
-                  <p className={bodyText}>{intelligence.identitySummary || "—"}</p>
+                  <span className={`${typography.label} block mb-2`}>Summary</span>
+                  <p className={typography.body}>{intelligence.identitySummary || "—"}</p>
                 </div>
                 <div>
-                  <span className={labelStyle}>Genre</span>
-                  <p className={bodyText}>{profile.genre_sound || "—"}</p>
+                  <span className={`${typography.label} block mb-2`}>Genre</span>
+                  <p className={typography.body}>{profile.genre_sound || "—"}</p>
                 </div>
                 <div>
-                  <span className={labelStyle}>Stage</span>
-                  <p className={`${bodyText} capitalize`}>{profile.career_stage || "—"}</p>
+                  <span className={`${typography.label} block mb-2`}>Stage</span>
+                  <p className={`${typography.body} capitalize`}>{profile.career_stage || "—"}</p>
                 </div>
               </div>
             </div>
@@ -177,17 +177,17 @@ export default async function DashboardPage() {
             {/* PATTERNS CARD */}
             <div className="p-6 sm:p-8" style={cardStyleMedium}>
               <div className="flex justify-between items-center mb-6 h-[44px]">
-                <h2 className={headerStyle}>Patterns</h2>
+                <h2 className={typography.cardHeader}>Patterns</h2>
                 <div className="w-[60px]"></div>
               </div>
               <div className="space-y-5">
                 <div>
-                  <span className={labelStyle}>Edge</span>
-                  <p className={bodyText}>{intelligence.edge || "—"}</p>
+                  <span className={`${typography.label} block mb-2`}>Edge</span>
+                  <p className={typography.body}>{intelligence.edge || "—"}</p>
                 </div>
                 <div>
-                  <span className={labelStyle}>Friction</span>
-                  <p className={bodyText}>{intelligence.friction || "—"}</p>
+                  <span className={`${typography.label} block mb-2`}>Friction</span>
+                  <p className={typography.body}>{intelligence.friction || "—"}</p>
                 </div>
               </div>
             </div>
@@ -199,7 +199,7 @@ export default async function DashboardPage() {
               {intelligence.strategicContext?.length ? (
                 <ul className="space-y-3">
                   {intelligence.strategicContext.map((b: string, i: number) => (
-                    <li key={i} className={bodyText}>• {b}</li>
+                    <li key={i} className={typography.body}>• {b}</li>
                   ))}
                 </ul>
               ) : (
@@ -211,7 +211,7 @@ export default async function DashboardPage() {
               {intelligence.nextActions?.length ? (
                 <div className="space-y-3">
                   {intelligence.nextActions.map((action: string, i: number) => (
-                    <p key={i} className={bodyText}>• {action}</p>
+                    <p key={i} className={typography.body}>• {action}</p>
                   ))}
                 </div>
               ) : (

@@ -51,10 +51,16 @@ export async function completeTask(
     const taskId = taskRecords?.[0]?.id
     console.log('[Task Complete] Recorded:', task.title, 'ID:', taskId, 'Has reflection:', !!reflection)
 
-    // Clear intelligence cache to generate new task
+    // Clear ONLY the task-related cache fields, preserve Current Read
     const { error: cacheError } = await supabase
       .from('interpretations')
-      .delete()
+      .update({
+        priority_task_title: null,
+        priority_task_reasoning: null,
+        priority_task_guardrail: null,
+        priority_task_guide: null,
+        next_actions: null,
+      })
       .eq('user_id', user.id)
 
     if (cacheError) {
@@ -73,11 +79,11 @@ export async function completeTask(
 /**
  * Server Action: Skip a task
  * 
- * Records task as skipped (no reflection) and clears intelligence cache.
- * SKIP = "This doesn't fit right now" — just a signal, no elaboration needed.
+ * Records task as skipped with optional skip_reason and clears intelligence cache.
  */
 export async function skipTask(
-  task: TaskData
+  task: TaskData,
+  skipReason?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
@@ -99,6 +105,7 @@ export async function skipTask(
         guardrail: task.guardrail || null,
         status: 'skipped',
         completed_at: new Date().toISOString(),
+        skip_reason: skipReason?.trim() || null,
       })
 
     if (insertError) {
@@ -108,10 +115,16 @@ export async function skipTask(
 
     console.log('[Task Skip] Recorded:', task.title)
 
-    // Clear intelligence cache to generate new task
+    // Clear ONLY the task-related cache fields, preserve Current Read
     const { error: cacheError } = await supabase
       .from('interpretations')
-      .delete()
+      .update({
+        priority_task_title: null,
+        priority_task_reasoning: null,
+        priority_task_guardrail: null,
+        priority_task_guide: null,
+        next_actions: null,
+      })
       .eq('user_id', user.id)
 
     if (cacheError) {
