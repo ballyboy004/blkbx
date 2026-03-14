@@ -111,7 +111,7 @@ export async function generateDashboardIntelligence(
 
     try {
       const { text, usage } = await generateWithClaude(systemPrompt, {
-        maxTokens: 800,
+        maxTokens: 1500,  // Increased from 800 to prevent JSON truncation
         temperature: 0.3,
       })
 
@@ -207,7 +207,7 @@ export async function generateTaskOnly(
   const prompt = buildTaskOnlyPrompt(profile, route, history)
 
   const { text, usage } = await generateWithClaude(prompt, {
-    maxTokens: 400,
+    maxTokens: 600,  // Increased from 400 for safety margin
     temperature: 0.3,
   })
 
