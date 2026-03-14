@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
-import { typography } from '@/lib/typography'
+import { components, typography, buttonClass } from '@/lib/design-system'
 
 type TaskGuideModalProps = {
   task: PriorityTask
@@ -49,15 +49,16 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
       {/* Modal overlay */}
       {isOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => setIsOpen(false)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/95" />
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl mx-4 sm:mx-0 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            style={components.overlay.modal}
+            className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -117,7 +118,7 @@ export function TaskGuideModal({ task, isHero = false }: TaskGuideModalProps) {
             <div className="p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="btn-recess w-full py-3 bg-zinc-800 border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white min-h-[44px]"
+                className={`w-full ${buttonClass.primary}`}
               >
                 Close
               </button>

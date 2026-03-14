@@ -4,9 +4,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { updateProfile, type ProfileUpdateData } from '@/app/dashboard/actions/profile'
-import { typography } from '@/lib/typography'
-
-const inputStyle = `w-full rounded-md bg-zinc-800/50 border border-zinc-700 placeholder:text-zinc-600 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 px-3 py-2 ${typography.input}`
+import { components, typography, inputClass, pillClass, buttonClass, spacing } from '@/lib/design-system'
 
 type CareerStage = 'early' | 'building' | 'momentum' | 'breakout' | 'pro'
 type ContentActivity = 'regular' | 'sometimes' | 'rarely' | 'never'
@@ -122,11 +120,12 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
           onClick={() => !isSaving && setIsOpen(false)}
         >
           {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/95" />
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
+            style={components.overlay.modal}
+            className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -154,7 +153,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={context}
                   onChange={(e) => setContext(e.target.value)}
                   placeholder="I'm a recording artist focused on..."
-                  className={`${inputStyle} min-h-[100px] resize-none`}
+                  className={`${inputClass} min-h-[100px] resize-none`}
                 />
               </FieldBlock>
 
@@ -164,7 +163,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={primaryGoal}
                   onChange={(e) => setPrimaryGoal(e.target.value)}
                   placeholder='Ex: "consistent releases" / "grow tiktok discovery"'
-                  className={`${inputStyle} min-h-[80px] resize-none`}
+                  className={`${inputClass} min-h-[80px] resize-none`}
                 />
               </FieldBlock>
 
@@ -175,7 +174,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={genreSound}
                   onChange={(e) => setGenreSound(e.target.value)}
                   placeholder='Ex: "dark r&b"'
-                  className={`${inputStyle} h-11`}
+                  className={`${inputClass} ${spacing.input.height}`}
                 />
               </FieldBlock>
 
@@ -236,7 +235,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={stuckOn}
                   onChange={(e) => setStuckOn(e.target.value)}
                   placeholder='Ex: "I make content but never post it" / "I post but get no engagement"'
-                  className={`${inputStyle} min-h-[80px] resize-none`}
+                  className={`${inputClass} min-h-[80px] resize-none`}
                 />
               </FieldBlock>
 
@@ -246,7 +245,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={strengths}
                   onChange={(e) => setStrengths(e.target.value)}
                   placeholder='Ex: "making music consistently, visuals, moody branding"'
-                  className={`${inputStyle} min-h-[80px] resize-none`}
+                  className={`${inputClass} min-h-[80px] resize-none`}
                 />
               </FieldBlock>
 
@@ -256,7 +255,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={weaknesses}
                   onChange={(e) => setWeaknesses(e.target.value)}
                   placeholder='Ex: "posting consistency, outreach, overthinking"'
-                  className={`${inputStyle} min-h-[80px] resize-none`}
+                  className={`${inputClass} min-h-[80px] resize-none`}
                 />
               </FieldBlock>
 
@@ -266,7 +265,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={constraints}
                   onChange={(e) => setConstraints(e.target.value)}
                   placeholder='Ex: "2 hours/day, low budget, I burn out if I post daily"'
-                  className={`${inputStyle} min-h-[80px] resize-none`}
+                  className={`${inputClass} min-h-[80px] resize-none`}
                 />
               </FieldBlock>
 
@@ -277,7 +276,7 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
                   value={currentFocus}
                   onChange={(e) => setCurrentFocus(e.target.value)}
                   placeholder='Ex: "release idea 001 + build tiktok discovery"'
-                  className={`${inputStyle} h-11`}
+                  className={`${inputClass} ${spacing.input.height}`}
                 />
               </FieldBlock>
             </div>
@@ -287,14 +286,14 @@ export default function EditProfileModal({ profile }: EditProfileModalProps) {
               <button
                 onClick={() => !isSaving && setIsOpen(false)}
                 disabled={isSaving}
-                className="btn-recess flex-1 py-3 bg-transparent border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 disabled:opacity-50 min-h-[44px]"
+                className={`flex-1 ${buttonClass.secondary}`}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="btn-lift flex-1 py-3 bg-zinc-700 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white disabled:opacity-50 min-h-[44px]"
+                className={`flex-1 ${buttonClass.primary}`}
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -316,25 +315,9 @@ function FieldBlock({ label, children }: { label: string; children: React.ReactN
   )
 }
 
-function PillButton({ 
-  active, 
-  onClick, 
-  children 
-}: { 
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode 
-}) {
+function PillButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`btn-recess px-4 py-3 rounded-md border font-mono text-[11px] tracking-tight min-h-[44px] ${
-        active
-          ? 'bg-zinc-700/50 border-zinc-500 text-white'
-          : 'bg-transparent border-zinc-700 text-zinc-400'
-      }`}
-    >
+    <button type="button" onClick={onClick} className={pillClass(active)}>
       {children}
     </button>
   )

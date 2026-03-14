@@ -18,16 +18,23 @@ export type Profile = {
   constraints: string | null;
   current_focus: string | null;
   
-  // Current State (Panel 4) - NEW
-  content_activity: string | null;  // 'regular' | 'sometimes' | 'rarely' | 'never'
-  release_status: string | null;    // 'regular' | 'few' | 'unreleased' | 'first'
-  stuck_on: string | null;          // Free text - where they feel blocked
+  // Current State (Panel 4)
+  content_activity: string | null;
+  release_status: string | null;
+  stuck_on: string | null;
 
-  // Legacy field (may be used elsewhere)
+  // Legacy field
   current_state: string | null;
 
+  // Onboarding
   onboarding_completed: boolean | null;
   onboarding_completed_at: string | null;
+
+  // Module Access (V1 Campaign)
+  subscription_status: 'free' | 'active' | 'cancelled' | 'past_due' | null;
+  subscription_tier: string | null;
+  stripe_customer_id: string | null;
+  modules_enabled: string[] | null;
 };
 
 export async function getAuthedUserOrRedirect(redirectTo: string = "/") {
@@ -52,7 +59,7 @@ export async function getProfileByUserId(userId: string) {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,onboarding_completed,onboarding_completed_at"
+      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,onboarding_completed,onboarding_completed_at,subscription_status,subscription_tier,stripe_customer_id,modules_enabled"
     )
     .eq("id", userId)
     .maybeSingle();

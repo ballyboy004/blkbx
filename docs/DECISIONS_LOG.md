@@ -1,5 +1,5 @@
 # DECISIONS_LOG.md
-**Last Updated:** 2026-01-25
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -27,6 +27,27 @@ Do NOT log:
 ---
 
 ## Decisions
+
+## 2026-01-28 Reflection Made Optional
+- Removed mandatory reflection on task completion
+- Removed "+ NOTE" button
+- DONE now completes immediately
+- Skip reason modal captures learning instead
+
+## 2026-01-28 Skip Reason Capture
+- Added skip_reason column to tasks table
+- 5 options: not relevant, too big, already doing, don't understand, not feeling it
+- Feeds into routing.ts for behavioral adaptation
+
+## 2026-01-28 Task Stats Removed
+- Removed "X completed · Y skipped · Z% rate" display
+- Felt like productivity app, against philosophy
+- May revisit later with different framing
+
+## 2026-01-28 Moved to Railway
+- Vercel webhooks repeatedly broken
+- Railway auto-deploys on git push
+- URL: blkbx.up.railway.app
 
 ## 2026-01-25 Vercel Project Recreation
 - Old Vercel project had broken GitHub webhook; deployments weren't triggering

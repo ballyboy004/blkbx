@@ -1,5 +1,5 @@
 # PROJECT_STATE.md
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -12,7 +12,7 @@
 | Database | Supabase (Postgres + Auth) | @supabase/ssr 0.8.0 |
 | AI | Claude API | @anthropic-ai/sdk 0.71.2 |
 | Styling | Tailwind CSS | 4.1.9 |
-| Deployment | Vercel | Auto-deploy on push |
+| Deployment | Railway | Auto-deploy on push; URL: blkbx.up.railway.app |
 
 **Local Path:** `/Users/samuelgilmore/Documents/blkbox`
 **GitHub:** `ballyboy004/blackbox`
@@ -67,10 +67,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 - [x] Behavioral history tracking (`lib/intelligence/history.ts`)
 
 ### Task System
-- [x] Complete task with optional reflection
-- [x] Skip task
+- [x] Complete task (immediate; no reflection prompt)
+- [x] Skip task with reason capture (5 options, feeds into routing)
 - [x] Task history storage
 - [x] Progression logic (tasks build on each other)
+
+---
+
+## Recent Changes
+
+- Reflection made optional; DONE completes immediately
+- Skip reason modal (5 options) captures learning
+- Task stats display removed (philosophy)
+- Deployment moved to Railway (blkbx.up.railway.app)
 
 ---
 

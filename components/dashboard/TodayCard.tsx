@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { TaskGuideModal } from "@/components/dashboard/TaskGuideModal"
 import { completeTask, skipTask } from '@/app/dashboard/actions/tasks'
 import type { PriorityTask } from '@/lib/intelligence/interpret'
-import { typography } from '@/lib/typography'
+import { components, typography, buttonClass, pillClass } from '@/lib/design-system'
 
 type RecentTask = {
   id: string
@@ -137,15 +137,6 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     }
   }
 
-  const cardStyle = {
-    background: 'rgba(26, 26, 26, 0.45)',
-    backdropFilter: 'blur(28px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.14)',
-    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '4px',
-    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.3)'
-  }
-
   const containerPadding = isHero ? "p-6 sm:p-8 md:p-10" : "p-6 sm:p-8"
 
   // Past Task Detail Modal
@@ -153,8 +144,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     if (!selectedPastTask) return null
     return typeof document !== 'undefined' ? createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={() => setSelectedPastTask(null)}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-        <div className="relative w-full max-w-lg mx-4 sm:mx-0 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute inset-0 bg-black/95" />
+        <div style={components.overlay.modal} className="relative w-full max-w-lg mx-4 sm:mx-0 rounded-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-start justify-between p-4 sm:p-5 border-b border-zinc-800 flex-shrink-0">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className={`font-mono text-[11px] flex-shrink-0 ${selectedPastTask.status === 'done' ? 'text-emerald-500' : 'text-zinc-500'}`}>
@@ -205,8 +196,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     if (!showGuideModal || !task?.guide) return null
     return typeof document !== 'undefined' ? createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={() => setShowGuideModal(false)}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-        <div className="relative w-full max-w-2xl mx-4 sm:mx-0 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute inset-0 bg-black/95" />
+        <div style={components.overlay.modal} className="relative w-full max-w-2xl mx-4 sm:mx-0 rounded-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-start justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
             <h2 className="font-mono text-[14px] font-semibold text-white flex-1 pr-2">{task.title}</h2>
             <button 
@@ -263,9 +254,10 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         onClick={() => setShowSkipReasonModal(false)}
       >
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm" />
+        <div className="fixed inset-0 bg-black/95" />
         <div
-          className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
+          style={components.overlay.modal}
+          className="relative w-full max-w-2xl mx-4 sm:mx-0 my-4 sm:my-8 rounded-lg animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
@@ -288,11 +280,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
                     key={option}
                     type="button"
                     onClick={() => setSkipReason(option)}
-                    className={`btn-recess px-4 py-3 rounded-md border font-mono text-[11px] tracking-tight min-h-[44px] ${
-                      skipReason === option
-                        ? 'bg-zinc-700/50 border-zinc-500 text-white'
-                        : 'bg-transparent border-zinc-700 text-zinc-400'
-                    }`}
+                    className={pillClass(skipReason === option)}
                   >
                     {option}
                   </button>
@@ -303,14 +291,14 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           <div className="flex gap-3 p-4 sm:p-6 border-t border-zinc-800 flex-shrink-0">
             <button
               onClick={() => setShowSkipReasonModal(false)}
-              className="btn-recess flex-1 py-3 bg-transparent border border-zinc-700 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-zinc-400 disabled:opacity-50 min-h-[44px]"
+              className={`flex-1 ${buttonClass.secondary}`}
             >
               Cancel
             </button>
             <button
               onClick={handleSkipConfirm}
               disabled={!skipReason}
-              className="btn-lift flex-1 py-3 bg-zinc-700 border border-zinc-600 rounded font-mono text-[10px] font-medium tracking-[0.15em] uppercase text-white disabled:opacity-50 min-h-[44px]"
+              className={`flex-1 ${buttonClass.primary}`}
             >
               Confirm
             </button>
@@ -327,7 +315,8 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
     return (
       <div 
         ref={dropdownRef}
-        className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-[calc(100vw-1rem)] sm:w-80 max-w-[320px] bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded shadow-2xl z-50"
+        style={components.overlay.dropdown}
+        className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-[calc(100vw-1rem)] sm:w-80 max-w-[320px] rounded z-50"
       >
         <div className="p-2 border-b border-zinc-800">
           <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-zinc-500">
@@ -361,7 +350,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Error state
   if (fetchError) {
     return (
-      <div className={`${containerPadding}`} style={cardStyle}>
+      <div className={`${containerPadding}`} style={components.card.hero}>
         <div className="flex justify-between items-center mb-6">
           <h2 className={typography.cardHeader}>Today</h2>
         </div>
@@ -372,7 +361,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           </p>
           <button 
             onClick={() => fetchNewTask()} 
-            className="btn-recess border border-zinc-700 rounded px-4 py-2 font-mono text-[10px] tracking-wider uppercase text-zinc-300 min-h-[44px]"
+            className={buttonClass.secondary}
           >
             Retry
           </button>
@@ -384,7 +373,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Success state
   if (showSuccess) {
     return (
-      <div className={`${containerPadding}`} style={cardStyle}>
+      <div className={`${containerPadding}`} style={components.card.hero}>
         <h2 className={`${typography.cardHeader} mb-6`}>Today</h2>
         <div className="py-12 text-center space-y-3">
           <p className="font-mono text-[14px] font-semibold text-white">✓ Done</p>
@@ -397,7 +386,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // Refreshing state
   if (isRefreshing) {
     return (
-      <div className={`${containerPadding}`} style={cardStyle}>
+      <div className={`${containerPadding}`} style={components.card.hero}>
         <h2 className={`${typography.cardHeader} mb-6`}>Today</h2>
         <div className="py-12 text-center">
           <p className="font-mono text-[12px] text-zinc-400 animate-pulse lowercase">thinking...</p>
@@ -409,7 +398,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
   // No task state
   if (!task) {
     return (
-      <div className={`${containerPadding}`} style={cardStyle}>
+      <div className={`${containerPadding}`} style={components.card.hero}>
         <div className="flex justify-between items-center mb-6">
           <h2 className={typography.cardHeader}>Today</h2>
         </div>
@@ -427,7 +416,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
 
   // Default task view
   return (
-    <div className={`${containerPadding} space-y-5 transition-all duration-300 group today-card`} style={cardStyle}>
+    <div className={`${containerPadding} space-y-5 transition-all duration-300 group today-card`} style={components.card.hero}>
       <PastTaskModal />
         <SkipReasonModal />
       
@@ -438,7 +427,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
           <div className="relative">
             <button 
               onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-              className="btn-ghost font-mono text-[9px] tracking-[0.12em] uppercase text-zinc-500 px-2 py-2 min-h-[44px] min-w-[44px]"
+              className={buttonClass.ghost}
             >
               History
             </button>
@@ -448,14 +437,14 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
             <button
               onClick={handleSkipClick}
               disabled={isLoading}
-              className="btn-recess bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              className={buttonClass.secondary}
             >
               {isSkipping ? '...' : 'Skip'}
             </button>
             <button
               onClick={handleDoneClick}
               disabled={isLoading || isSubmitting}
-              className="btn-lift bg-transparent border border-white/30 rounded-sm font-mono font-medium uppercase disabled:opacity-50 disabled:cursor-not-allowed text-white text-[9px] px-3 py-2 tracking-[0.12em] min-h-[44px]"
+              className={buttonClass.primary}
             >
               {isSubmitting ? '...' : 'Done'}
             </button>

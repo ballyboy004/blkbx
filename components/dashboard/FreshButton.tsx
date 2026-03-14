@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { buttonClass } from '@/lib/design-system'
 
 export default function FreshButton() {
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -37,7 +38,7 @@ export default function FreshButton() {
     <button
       onClick={handleRefresh}
       disabled={isRefreshing}
-      className="btn-ghost font-mono text-[10px] tracking-wider uppercase text-zinc-500 disabled:opacity-50 min-h-[44px] px-2 py-2"
+      className={buttonClass.ghost}
     >
       {isRefreshing ? '...' : 'Refresh'}
     </button>

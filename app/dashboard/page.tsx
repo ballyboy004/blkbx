@@ -8,25 +8,7 @@ import FreshButton from "@/components/dashboard/FreshButton";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import SignOutButton from "@/components/dashboard/SignOutButton";
 import { Logo } from "@/components/ui/Logo";
-import { typography } from "@/lib/typography";
-
-// Card styles with 3D depth (base = lowest, medium = mid, TODAY card = highest in TodayCard.tsx)
-const cardStyleBase = {
-  background: 'rgba(26, 26, 26, 0.35)',
-  backdropFilter: 'blur(20px) saturate(160%)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  borderRadius: '4px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-}
-
-const cardStyleMedium = {
-  background: 'rgba(26, 26, 26, 0.4)',
-  backdropFilter: 'blur(24px) saturate(170%)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-  borderRadius: '4px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2)'
-}
+import { components, typography } from "@/lib/design-system";
 
 export default async function DashboardPage() {
   const { user } = await getAuthedUserOrRedirect("/");
@@ -114,7 +96,7 @@ export default async function DashboardPage() {
                   transform: 'translateY(8px) scale(1.02)'
                 }}
               />
-              <div className="p-6 sm:p-8 md:p-10" style={cardStyleMedium}>
+              <div className="p-6 sm:p-8 md:p-10" style={components.card.elevated}>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className={typography.cardHeader}>Today</h2>
                 </div>
@@ -134,7 +116,7 @@ export default async function DashboardPage() {
           )}
 
           {/* CURRENT READ */}
-          <div className="p-6 sm:p-8 md:p-10" style={cardStyleBase}>
+          <div className="p-6 sm:p-8 md:p-10" style={components.card.base}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={typography.cardHeader}>Current Read</h2>
               <div className="flex items-center gap-2 sm:gap-3">
@@ -153,7 +135,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
             {/* PROFILE CARD */}
-            <div className="p-6 sm:p-8" style={cardStyleMedium}>
+            <div className="p-6 sm:p-8" style={components.card.elevated}>
               <div className="flex justify-between items-center mb-6 h-[44px]">
                 <h2 className={typography.cardHeader}>Profile</h2>
                 <EditProfileModal profile={profile} />
@@ -175,7 +157,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* PATTERNS CARD */}
-            <div className="p-6 sm:p-8" style={cardStyleMedium}>
+            <div className="p-6 sm:p-8" style={components.card.elevated}>
               <div className="flex justify-between items-center mb-6 h-[44px]">
                 <h2 className={typography.cardHeader}>Patterns</h2>
                 <div className="w-[60px]"></div>

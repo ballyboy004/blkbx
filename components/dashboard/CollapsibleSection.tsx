@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { typography } from '@/lib/typography'
+import { components, typography } from '@/lib/design-system'
 
 interface CollapsibleSectionProps {
   title: string
@@ -12,17 +12,8 @@ interface CollapsibleSectionProps {
 export default function CollapsibleSection({ title, children, defaultExpanded = false }: CollapsibleSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   
-  const cardStyle = {
-    background: 'rgba(26, 26, 26, 0.4)',
-    backdropFilter: 'blur(24px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-    borderRadius: '4px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2)'
-  }
-  
   return (
-    <div className="p-6 sm:p-8" style={cardStyle}>
+    <div className="p-6 sm:p-8" style={components.card.base}>
       {/* Clickable header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
