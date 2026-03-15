@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, content_activity, release_status, stuck_on, onboarding_completed"
+      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, content_activity, release_status, stuck_on, artist_archetype, visibility_style, release_philosophy, audience_relationship, reference_artists, onboarding_completed"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -40,6 +40,11 @@ export default async function OnboardingPage() {
         content_activity: (profile?.content_activity as any) ?? "sometimes",
         release_status: (profile?.release_status as any) ?? "few",
         stuck_on: profile?.stuck_on ?? "",
+        artist_archetype: profile?.artist_archetype ?? "",
+        visibility_style: profile?.visibility_style ?? "",
+        release_philosophy: profile?.release_philosophy ?? "",
+        audience_relationship: profile?.audience_relationship ?? "",
+        reference_artists: profile?.reference_artists ?? "",
       }}
     />
   );

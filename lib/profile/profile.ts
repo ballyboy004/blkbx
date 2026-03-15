@@ -23,6 +23,13 @@ export type Profile = {
   release_status: string | null;
   stuck_on: string | null;
 
+  // Identity / Career Model (Decision 2)
+  artist_archetype: string | null;
+  visibility_style: string | null;
+  release_philosophy: string | null;
+  audience_relationship: string | null;
+  reference_artists: string | null;
+
   // Legacy field
   current_state: string | null;
 
@@ -59,7 +66,7 @@ export async function getProfileByUserId(userId: string) {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,onboarding_completed,onboarding_completed_at,subscription_status,subscription_tier,stripe_customer_id,modules_enabled"
+      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,artist_archetype,visibility_style,release_philosophy,audience_relationship,reference_artists,onboarding_completed,onboarding_completed_at,subscription_status,subscription_tier,stripe_customer_id,modules_enabled"
     )
     .eq("id", userId)
     .maybeSingle();

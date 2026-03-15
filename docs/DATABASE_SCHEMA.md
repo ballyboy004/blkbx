@@ -12,6 +12,7 @@ Fields:
 - id
 - user_id
 - title
+- release_type
 - release_date
 - goals
 - status

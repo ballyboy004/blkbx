@@ -1,12 +1,16 @@
 import type { Profile } from "@/lib/profile/profile";
 import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
+import { createClient } from "@/lib/supabase/server";
 import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
 import { getBehavioralHistory } from "@/lib/intelligence/history";
+import { getActiveCampaign, getCampaignContext } from "@/lib/modules/campaign/queries";
+import { resolveCampaignState, type CampaignState } from "@/lib/modules/campaign/state";
 import CollapsibleSection from "@/components/dashboard/CollapsibleSection";
 import TodayCard from "@/components/dashboard/TodayCard";
 import FreshButton from "@/components/dashboard/FreshButton";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import SignOutButton from "@/components/dashboard/SignOutButton";
+import { CampaignMissionCard } from "@/components/campaign/CampaignMissionCard";
 import { Logo } from "@/components/ui/Logo";
 import { components, typography } from "@/lib/design-system";
 
@@ -15,8 +19,17 @@ export default async function DashboardPage() {
   if (!user) return null;
 
   const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
+
+  const supabase = await createClient();
+  const activeCampaign = await getActiveCampaign(supabase, user.id);
+  let campaignState: CampaignState | null = null;
+  if (activeCampaign) {
+    const { tasks, strategy } = await getCampaignContext(supabase, activeCampaign.id, user.id);
+    campaignState = resolveCampaignState(tasks, strategy);
+  }
+
   const intelligence = await getCompleteDashboardIntelligence(user.id, profile);
-  
+
   // Fetch recent tasks for the TodayCard
   const history = await getBehavioralHistory(user.id, { limit: 10 });
   const recentTasks = history.recentTasks.map(t => ({
@@ -73,6 +86,8 @@ export default async function DashboardPage() {
 
             <SignOutButton />
           </header>
+
+          <CampaignMissionCard campaign={activeCampaign} campaignState={campaignState} />
 
           {/* TODAY - HERO POSITION */}
           {hasTask ? (

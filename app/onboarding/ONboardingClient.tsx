@@ -23,6 +23,11 @@ type InitialProfile = {
   content_activity: ContentActivity;
   release_status: ReleaseStatus;
   stuck_on: string;
+  artist_archetype?: string;
+  visibility_style?: string;
+  release_philosophy?: string;
+  audience_relationship?: string;
+  reference_artists?: string;
 };
 
 type FollowUpQuestion = {
@@ -42,7 +47,7 @@ export default function OnboardingClient({
   const supabase = createClient();
   const SLIDE_MS = 900;
 
-  // Panel index: 0=who you are, 1=follow-ups, 2=where headed, 3=current activity, 4=how work
+  // Panel index: 0=who you are, 1=follow-ups, 2=career model, 3=where headed, 4=current activity, 5=how work
   const [panelIndex, setPanelIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -57,27 +62,35 @@ export default function OnboardingClient({
   const [genreSound, setGenreSound] = useState(initialProfile.genre_sound ?? "");
   const [careerStage, setCareerStage] = useState<CareerStage>(initialProfile.career_stage ?? "building");
 
-  // Panel 2 - where you're headed (goal + current focus)
+  // Panel 2 - your career model
+  const [artistArchetype, setArtistArchetype] = useState<string>(initialProfile.artist_archetype ?? "");
+  const [visibilityStyle, setVisibilityStyle] = useState<string>(initialProfile.visibility_style ?? "");
+  const [releasePhilosophy, setReleasePhilosophy] = useState<string>(initialProfile.release_philosophy ?? "");
+  const [audienceRelationship, setAudienceRelationship] = useState<string>(initialProfile.audience_relationship ?? "");
+  const [referenceArtists, setReferenceArtists] = useState<string>(initialProfile.reference_artists ?? "");
+
+  // Panel 3 - where you're headed (goal + current focus)
   const [primaryGoal, setPrimaryGoal] = useState(initialProfile.primary_goal ?? "");
   const [currentFocus, setCurrentFocus] = useState(initialProfile.current_focus ?? "");
 
-  // Panel 3 - current activity (NEW STRUCTURED DATA)
+  // Panel 4 - current activity (NEW STRUCTURED DATA)
   const [contentActivity, setContentActivity] = useState<ContentActivity>(initialProfile.content_activity ?? "sometimes");
   const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>(initialProfile.release_status ?? "few");
   const [stuckOn, setStuckOn] = useState(initialProfile.stuck_on ?? "");
 
-  // Panel 4 - how you work (strengths, weaknesses, constraints)
+  // Panel 5 - how you work (strengths, weaknesses, constraints)
   const [strengths, setStrengths] = useState(initialProfile.strengths ?? "");
   const [weaknesses, setWeaknesses] = useState(initialProfile.weaknesses ?? "");
   const [constraints, setConstraints] = useState(initialProfile.constraints ?? "");
 
   const stepMeta = useMemo(() => {
     const steps = [
-      { step: 1, subtitle: "step 1 of 5", title: "who you are", time: "~2 min" },
-      { step: 1, subtitle: "step 1 of 5", title: "who you are", time: "~1 min" },
-      { step: 2, subtitle: "step 2 of 5", title: "where you're headed", time: "~1 min" },
-      { step: 3, subtitle: "step 3 of 5", title: "what you're doing now", time: "~1 min" },
-      { step: 4, subtitle: "step 4 of 5", title: "how you work", time: "~1 min" },
+      { step: 1, subtitle: "step 1 of 6", title: "who you are", time: "~2 min" },
+      { step: 1, subtitle: "step 1 of 6", title: "who you are", time: "~1 min" },
+      { step: 2, subtitle: "step 2 of 6", title: "your career model", time: "~2 min" },
+      { step: 3, subtitle: "step 3 of 6", title: "where you're headed", time: "~1 min" },
+      { step: 4, subtitle: "step 4 of 6", title: "what you're doing now", time: "~1 min" },
+      { step: 5, subtitle: "step 5 of 6", title: "how you work", time: "~1 min" },
     ]
     return steps[panelIndex] || steps[0]
   }, [panelIndex]);
@@ -169,7 +182,7 @@ export default function OnboardingClient({
       return;
     }
 
-    // Panel 1: Save follow-up answers, slide to panel 2
+    // Panel 1: Save follow-up answers, slide to panel 2 (career model)
     if (panelIndex === 1) {
       const answeredFollowUps = followUpQuestions
         .filter(fq => fq.answer.trim())
@@ -187,11 +200,14 @@ export default function OnboardingClient({
       return;
     }
 
-    // Panel 2: Save goals
+    // Panel 2: Save career model (5 new fields)
     if (panelIndex === 2) {
       const res = await upsertProfile({
-        primary_goal: primaryGoal,
-        current_focus: currentFocus,
+        artist_archetype: artistArchetype || null,
+        visibility_style: visibilityStyle || null,
+        release_philosophy: releasePhilosophy || null,
+        audience_relationship: audienceRelationship || null,
+        reference_artists: referenceArtists || null,
       });
       if (!res.ok) return alert(res.message);
       setIsSliding(true);
@@ -200,12 +216,11 @@ export default function OnboardingClient({
       return;
     }
 
-    // Panel 3: Save current activity
+    // Panel 3: Save goals
     if (panelIndex === 3) {
       const res = await upsertProfile({
-        content_activity: contentActivity,
-        release_status: releaseStatus,
-        stuck_on: stuckOn,
+        primary_goal: primaryGoal,
+        current_focus: currentFocus,
       });
       if (!res.ok) return alert(res.message);
       setIsSliding(true);
@@ -214,7 +229,21 @@ export default function OnboardingClient({
       return;
     }
 
-    // Panel 4: Finish
+    // Panel 4: Save current activity
+    if (panelIndex === 4) {
+      const res = await upsertProfile({
+        content_activity: contentActivity,
+        release_status: releaseStatus,
+        stuck_on: stuckOn,
+      });
+      if (!res.ok) return alert(res.message);
+      setIsSliding(true);
+      setPanelIndex(5);
+      setTimeout(() => setIsSliding(false), SLIDE_MS);
+      return;
+    }
+
+    // Panel 5: Finish
     setIsFinishing(true);
     
     const res = await upsertProfile({
@@ -262,7 +291,7 @@ export default function OnboardingClient({
       setIsSliding(true);
       setPanelIndex(2);
       setTimeout(() => setIsSliding(false), SLIDE_MS);
-    } else if (panelIndex === 4) {
+    } else if (panelIndex === 5) {
       window.location.assign("/dashboard");
     } else {
       setIsSliding(true);
@@ -324,7 +353,7 @@ export default function OnboardingClient({
             <div
               className="flex transform-gpu transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
               style={{
-                width: viewportW ? viewportW * 5 : "500%",
+                width: viewportW ? viewportW * 6 : "600%",
                 transform: trackTransform,
               }}
             >
@@ -393,7 +422,109 @@ export default function OnboardingClient({
                 </StepShell>
               </div>
 
-              {/* PANEL 2 - where you're headed */}
+              {/* PANEL 2 — your career model */}
+              <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? 'opacity-85 scale-[0.995]' : 'opacity-100 scale-100'}`} style={{ width: viewportW || '100%' }}>
+                <StepShell
+                  title="your career model"
+                  description="this shapes how blackbox thinks about your direction — your archetype, your style, your references."
+                >
+                  <div className="space-y-8">
+
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">artist archetype</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 'cult artist', label: 'cult artist' },
+                          { value: 'mainstream crossover', label: 'mainstream crossover' },
+                          { value: 'underground tastemaker', label: 'underground tastemaker' },
+                          { value: 'independent brand', label: 'independent brand' },
+                          { value: 'genre pioneer', label: 'genre pioneer' },
+                        ].map(opt => (
+                          <ActivityPill
+                            key={opt.value}
+                            active={artistArchetype === opt.value}
+                            onClick={() => setArtistArchetype(opt.value)}
+                          >
+                            {opt.label}
+                          </ActivityPill>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">visibility style</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 'scarce / mysterious', label: 'scarce / mysterious' },
+                          { value: 'consistent / present', label: 'consistent / present' },
+                          { value: 'community-driven', label: 'community-driven' },
+                          { value: 'event-driven', label: 'event-driven' },
+                        ].map(opt => (
+                          <ActivityPill
+                            key={opt.value}
+                            active={visibilityStyle === opt.value}
+                            onClick={() => setVisibilityStyle(opt.value)}
+                          >
+                            {opt.label}
+                          </ActivityPill>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">release philosophy</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 'slow / intentional', label: 'slow / intentional' },
+                          { value: 'frequent / iterative', label: 'frequent / iterative' },
+                          { value: 'event-driven', label: 'event-driven' },
+                          { value: 'volume-first', label: 'volume-first' },
+                        ].map(opt => (
+                          <ActivityPill
+                            key={opt.value}
+                            active={releasePhilosophy === opt.value}
+                            onClick={() => setReleasePhilosophy(opt.value)}
+                          >
+                            {opt.label}
+                          </ActivityPill>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="text-xs font-mono tracking-tight text-zinc-500 lowercase">audience relationship</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 'distant / aspirational', label: 'distant / aspirational' },
+                          { value: 'close / personal', label: 'close / personal' },
+                          { value: 'anonymous / music-first', label: 'anonymous / music-first' },
+                          { value: 'community / collaborative', label: 'community / collaborative' },
+                        ].map(opt => (
+                          <ActivityPill
+                            key={opt.value}
+                            active={audienceRelationship === opt.value}
+                            onClick={() => setAudienceRelationship(opt.value)}
+                          >
+                            {opt.label}
+                          </ActivityPill>
+                        ))}
+                      </div>
+                    </div>
+
+                    <FieldBlock label="reference career models (optional)">
+                      <input
+                        placeholder='ex: "frank ocean, kaytranada, jpegmafia"'
+                        value={referenceArtists}
+                        onChange={(e) => setReferenceArtists(e.target.value)}
+                        className="h-11 w-full rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:border-zinc-700 font-mono text-sm tracking-tight lowercase px-3"
+                      />
+                    </FieldBlock>
+
+                  </div>
+                </StepShell>
+              </div>
+
+              {/* PANEL 3 - where you're headed */}
               <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
                 <StepShell
                   title="where you're headed"
@@ -423,7 +554,7 @@ export default function OnboardingClient({
                 </StepShell>
               </div>
 
-              {/* PANEL 3 - what you're doing now (NEW STRUCTURED) */}
+              {/* PANEL 4 - what you're doing now (NEW STRUCTURED) */}
               <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
                 <StepShell
                   title="what you're doing now"
@@ -506,7 +637,7 @@ export default function OnboardingClient({
                 </StepShell>
               </div>
 
-              {/* PANEL 4 - how you work */}
+              {/* PANEL 5 - how you work */}
               <div className={`shrink-0 px-7 box-border transition-all duration-[400ms] ease-out ${isSliding ? "opacity-85 scale-[0.995]" : "opacity-100 scale-100"}`} style={{ width: viewportW || "100%" }}>
                 <StepShell
                   title="how you work"
@@ -567,7 +698,7 @@ export default function OnboardingClient({
               disabled={isFinishing || isGeneratingFollowUps}
               className="btn-lift flex-1 h-11 min-h-[44px] bg-transparent border-zinc-800 text-zinc-300 font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isFinishing ? "finishing..." : isGeneratingFollowUps ? "thinking..." : panelIndex === 4 ? "finish" : "continue"}
+              {isFinishing ? "finishing..." : isGeneratingFollowUps ? "thinking..." : panelIndex === 5 ? "finish" : "continue"}
             </Button>
 
             <Button
@@ -586,6 +717,7 @@ export default function OnboardingClient({
             <div className={`h-1 w-8 rounded-full ${panelIndex === 2 ? "bg-zinc-700" : "bg-zinc-800"}`} />
             <div className={`h-1 w-8 rounded-full ${panelIndex === 3 ? "bg-zinc-700" : "bg-zinc-800"}`} />
             <div className={`h-1 w-8 rounded-full ${panelIndex === 4 ? "bg-zinc-700" : "bg-zinc-800"}`} />
+            <div className={`h-1 w-8 rounded-full ${panelIndex === 5 ? "bg-zinc-700" : "bg-zinc-800"}`} />
           </div>
         </div>
       </div>

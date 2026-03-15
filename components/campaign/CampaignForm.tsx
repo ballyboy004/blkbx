@@ -17,7 +17,7 @@ export function CampaignForm() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [releaseType, setReleaseType] = useState('')
-  const [targetReleaseDate, setTargetReleaseDate] = useState('')
+  const [releaseDate, setReleaseDate] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +30,7 @@ export function CampaignForm() {
       const { id } = await createCampaign({
         title,
         release_type: releaseType,
-        target_release_date: targetReleaseDate,
+        release_date: releaseDate,
       })
       router.push(`/campaign/${id}`)
     } catch (err) {
@@ -90,8 +90,8 @@ export function CampaignForm() {
         <input
           id="target_release_date"
           type="date"
-          value={targetReleaseDate}
-          onChange={(e) => setTargetReleaseDate(e.target.value)}
+          value={releaseDate}
+          onChange={(e) => setReleaseDate(e.target.value)}
           className={inputClass}
         />
       </div>
