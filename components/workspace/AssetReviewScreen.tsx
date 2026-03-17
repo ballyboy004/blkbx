@@ -77,7 +77,6 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
     try {
       const newPiece = await regenerateAsset(piece.id, campaignId)
       router.push(`/campaign/${campaignId}/review/${newPiece.id}`)
-      router.refresh()
     } catch {
       setError('Failed to regenerate. Try again.')
     } finally {
