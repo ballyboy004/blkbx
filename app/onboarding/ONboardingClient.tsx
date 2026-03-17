@@ -560,13 +560,13 @@ export default function OnboardingClient({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 mt-8">
+          <div className="grid shrink-0 mt-8" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
             <Button
               type="button"
               onClick={handleBack}
               variant="ghost"
               disabled={panelIndex === 0}
-              className="btn-ghost h-11 min-h-[44px] px-3 text-zinc-700 font-mono text-sm tracking-tight lowercase disabled:opacity-50"
+              className="btn-ghost h-11 min-h-[44px] px-3 text-zinc-700 font-mono text-sm tracking-tight lowercase disabled:opacity-50 justify-self-start"
             >
               back
             </Button>
@@ -584,7 +584,7 @@ export default function OnboardingClient({
                 isEntering ||
                 (currentPanelId === "interpretation" && !interpretation)
               }
-              className="btn-lift flex-1 h-11 min-h-[44px] bg-transparent border-zinc-800 text-zinc-300 font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-lift h-11 min-h-[44px] px-50 bg-transparent border-zinc-800 text-zinc-300 font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentPanelId === "interpretation"
                 ? isEntering
@@ -596,6 +596,7 @@ export default function OnboardingClient({
                     ? "thinking..."
                     : "continue"}
             </Button>
+            <div />
           </div>
 
           <div className="flex items-center justify-center gap-2 shrink-0 mt-6">
