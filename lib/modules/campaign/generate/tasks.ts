@@ -1,18 +1,34 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { CampaignTaskPhase } from '../types'
 
-type RawTaskItem = {
+type SubTask = {
+  title: string
+  description: string
+  order_index: number
+}
+
+type Milestone = {
   title: string
   description: string
   phase: CampaignTaskPhase
   order_index: number
+  sub_tasks: SubTask[]
 }
 
-type RawTaskOutput = {
+type MilestoneOutput = {
   phases: {
     phase: CampaignTaskPhase
-    tasks: RawTaskItem[]
+    milestones: Milestone[]
   }[]
+}
+
+// Flat output with parent_id resolved (placeholder only – not used by callers yet)
+export type CampaignTaskWithParent = {
+  title: string
+  description: string
+  phase: CampaignTaskPhase
+  order_index: number
+  parent_id: string | null // null for milestones, resolved ID for sub-tasks
 }
 
 export type CampaignTaskGeneratorInput = {
@@ -20,45 +36,88 @@ export type CampaignTaskGeneratorInput = {
   artistContext: string
   genreSound: string
   careerStage: string
-  strengths: string
   constraints: string
-  currentFocus: string
+  goals: string[] | null           // from campaign_goals in profile
+  readinessChecklist: string[]     // from readiness_checklist in profile
   campaignTitle: string
   releaseType: string | null
   releaseDate: string | null
 }
 
-const SYSTEM_PROMPT = `You are a music release campaign planner.
-Generate a phased campaign task list for an independent artist preparing a music release.
-Respond ONLY with valid JSON. No markdown, no explanation, no preamble.
-The JSON must match this exact structure:
+const SYSTEM_PROMPT = `You are a music release campaign strategist for independent artists.
+Generate a campaign execution plan as milestones with sub-tasks.
+
+CRITICAL RULES:
+- Tasks must be real-world actions the artist takes — not internal app actions
+- Never generate tasks like "review your assets" or "check your dashboard"
+- Every task must be something that happens in the world: sending an email,
+  posting content, making a call, submitting to a platform, reaching out to someone
+- Tasks must be specific to this artist's sound, constraints, and goals
+- Skip tasks covered by the readiness checklist — if Spotify editorial is already
+  submitted, do not include it
+- If the artist has limited time, reduce sub-task count per milestone
+
+STRUCTURE:
+- 3 phases: preparation, launch, post_release
+- 2-4 milestones per phase
+- 2-5 sub-tasks per milestone
+- Milestones are strategic objectives (e.g. "Build curator pipeline")
+- Sub-tasks are concrete daily actions (e.g. "Research 15 playlists in your genre on Spotify")
+
+REAL-WORLD TASK EXAMPLES (use this level of specificity):
+- "Submit to Spotify for Artists editorial — do this at least 7 days before release"
+- "Research 20 playlist curators in [genre] on Spotify and note their submission method"
+- "Write a personalized pitch email to 10 curators referencing their specific playlist"
+- "Post a 15-second teaser clip to TikTok and Instagram Reels — use the hook from your track"
+- "DM 5 micro-influencers in your genre asking if they'd use your track"
+- "Send fan email to your list 24 hours before release — keep it personal, not promotional"
+- "Update Spotify for Artists profile photo and bio to match release aesthetic"
+- "Pin your pre-save link in bio on all platforms simultaneously"
+- "Post day-2 content: lyric breakdown or studio context for the track"
+- "Follow up with curators who haven't responded — one polite message only"
+
+Respond ONLY with valid JSON matching this exact structure:
 {
   "phases": [
     {
       "phase": "preparation",
-      "tasks": [
-        { "title": "...", "description": "...", "phase": "preparation", "order_index": 0 },
-        ...
+      "milestones": [
+        {
+          "title": "...",
+          "description": "one sentence — what this milestone achieves",
+          "phase": "preparation",
+          "order_index": 0,
+          "sub_tasks": [
+            { "title": "...", "description": "...", "order_index": 0 },
+            { "title": "...", "description": "...", "order_index": 1 }
+          ]
+        }
       ]
     },
-    {
-      "phase": "launch",
-      "tasks": [...]
-    },
-    {
-      "phase": "post_release",
-      "tasks": [...]
-    }
+    { "phase": "launch", "milestones": [...] },
+    { "phase": "post_release", "milestones": [...] }
   ]
 }
-Generate 4–6 tasks per phase. Tasks must be specific to this artist's context, not generic.
-order_index is 0-based within each phase.`
+No markdown. No preamble. Valid JSON only.`
+
+export type GeneratedMilestone = {
+  title: string
+  description: string
+  phase: CampaignTaskPhase
+  order_index: number
+  sub_tasks: Array<{
+    title: string
+    description: string
+    order_index: number
+  }>
+}
 
 export async function generateTasksContent(
   input: CampaignTaskGeneratorInput
-): Promise<RawTaskItem[]> {
+): Promise<GeneratedMilestone[]> {
   const artistName =
     input.artistName || input.artistContext || 'Independent artist'
+
   const releaseDateFormatted =
     input.releaseDate != null && input.releaseDate !== ''
       ? new Date(input.releaseDate).toLocaleDateString('en-US', {
@@ -68,19 +127,31 @@ export async function generateTasksContent(
         })
       : 'not set'
 
+  const goalsLine = input.goals && input.goals.length > 0
+    ? input.goals.join(', ')
+    : 'not specified'
+
+  const readinessBlock =
+    input.readinessChecklist && input.readinessChecklist.length > 0
+      ? input.readinessChecklist.map((r) => `- ${r}`).join('\n')
+      : '- nothing checked yet'
+
   const userPrompt = `ARTIST:
 - Name: ${artistName}
-- Context: ${input.artistContext || 'not provided'}
 - Genre/sound: ${input.genreSound || 'not provided'}
 - Career stage: ${input.careerStage || 'not provided'}
-- Strengths: ${input.strengths || 'not provided'}
-- Constraints: ${input.constraints || 'not provided'}
-- Current focus: ${input.currentFocus || 'not provided'}
+- Constraints: ${input.constraints || 'none specified'}
+- Goals: ${goalsLine}
 
 CAMPAIGN:
 - Title: ${input.campaignTitle}
 - Release type: ${input.releaseType ?? 'not specified'}
-- Target release date: ${releaseDateFormatted}`
+- Target release date: ${releaseDateFormatted}
+
+ALREADY HANDLED (skip tasks for these):
+${readinessBlock}
+
+Generate the campaign execution plan.`
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -91,7 +162,7 @@ CAMPAIGN:
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 2048,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   })
@@ -102,13 +173,28 @@ CAMPAIGN:
   }
 
   const raw = firstBlock.text.replace(/```json|```/g, '').trim()
-  const parsed = JSON.parse(raw) as RawTaskOutput
+  const parsed = JSON.parse(raw) as MilestoneOutput
 
-  const flat: RawTaskItem[] = []
-  for (const p of parsed.phases ?? []) {
-    for (const t of p.tasks ?? []) {
-      flat.push(t)
+  const milestones: GeneratedMilestone[] = []
+
+  for (const phaseBlock of parsed.phases ?? []) {
+    const phase = phaseBlock.phase
+    for (const m of phaseBlock.milestones ?? []) {
+      const subTasks = (m.sub_tasks ?? []).map((st) => ({
+        title: st.title,
+        description: st.description,
+        order_index: st.order_index,
+      }))
+
+      milestones.push({
+        title: m.title,
+        description: m.description,
+        phase,
+        order_index: m.order_index,
+        sub_tasks: subTasks,
+      })
     }
   }
-  return flat
+
+  return milestones
 }
