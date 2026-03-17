@@ -1,7 +1,7 @@
 // Workspace intelligence contracts — pure functions only. No async, no DB, no API.
 
 import type { Profile } from '@/lib/profile/profile'
-import type { Campaign, CampaignStrategy, CampaignTaskPhase, ContentPieceType } from './types'
+import type { Campaign, CampaignStrategy, CampaignTaskPhase, ContentPieceType, ContentPiece } from './types'
 import type { CampaignState } from './state'
 import { PHASE_LABELS } from './state'
 
@@ -20,6 +20,7 @@ export type MissionCardData = {
 
   nextMoveLabel: string
   nextMoveText: string
+  currentMilestoneTitle: string | null  // parent milestone of nextTask
 
   progressLabel: string
   progressPercent: number
@@ -29,9 +30,17 @@ export type MissionCardData = {
   isComplete: boolean
 }
 
+const ASSET_LABELS: Record<string, string> = {
+  announcement: 'Announcement',
+  press_release: 'Press release',
+  email: 'Email announcement',
+  captions: 'Social captions',
+}
+
 export function buildMissionCardData(
   campaign: Campaign,
-  campaignState: CampaignState
+  campaignState: CampaignState,
+  pendingAssets?: ContentPiece[]
 ): MissionCardData {
   const phaseLabel = campaignState.currentPhase
     ? PHASE_LABELS[campaignState.currentPhase]
@@ -39,10 +48,17 @@ export function buildMissionCardData(
       ? 'Complete'
       : 'No plan yet'
 
-  const nextMoveText = campaignState.nextTask?.title
-    ?? (campaignState.isComplete
-      ? 'Campaign complete. Start your next release.'
-      : 'Generate your campaign plan to get started.')
+  const firstPending = pendingAssets?.find(p => p.status === 'generated' && p.type !== 'strategy')
+  const nextMoveText = firstPending
+    ? `Review ${ASSET_LABELS[firstPending.type] ?? firstPending.type}`
+    : campaignState.nextTask?.title
+      ?? (campaignState.isComplete
+        ? 'Campaign complete. Start your next release.'
+        : 'Generate your campaign plan to get started.')
+
+  const currentMilestoneTitle = firstPending
+    ? null
+    : campaignState.currentMilestone?.title ?? null
 
   const progressLabel = campaignState.totalTasks > 0
     ? `${campaignState.completedTasks} / ${campaignState.totalTasks} tasks complete`
@@ -61,6 +77,7 @@ export function buildMissionCardData(
     phaseLabel,
     nextMoveLabel: 'NEXT MOVE',
     nextMoveText,
+    currentMilestoneTitle,
     progressLabel,
     progressPercent,
     hasTasks: campaignState.hasTasks,
@@ -79,7 +96,10 @@ export type WorkspaceChip = {
   prompt: string
 }
 
-export function resolveWorkspaceChips(campaignState: CampaignState): WorkspaceChip[] {
+export function resolveWorkspaceChips(
+  campaignState: CampaignState,
+  hasPendingAssets?: boolean
+): WorkspaceChip[] {
   const chips: WorkspaceChip[] = []
 
   chips.push({
@@ -109,6 +129,22 @@ export function resolveWorkspaceChips(campaignState: CampaignState): WorkspaceCh
       id: 'generate',
       label: 'Build campaign plan',
       prompt: 'What should I do to get a campaign plan built for this release?',
+    })
+  }
+
+  if (campaignState.hasTasks && !campaignState.hasStrategy) {
+    chips.push({
+      id: 'generate_strategy',
+      label: 'Generate campaign assets',
+      prompt: '',
+    })
+  }
+
+  if (campaignState.hasStrategy && !hasPendingAssets) {
+    chips.push({
+      id: 'generate_assets',
+      label: 'Generate campaign assets',
+      prompt: '',
     })
   }
 
@@ -234,6 +270,24 @@ export function resolveAssetStrategy(profile: Profile): AssetStrategy {
     rationale:
       'Full rollout generated across all asset types — consistent presence is the strategy.',
   }
+}
+
+export type WorkItem = {
+  id: string
+  type: ContentPieceType
+  label: string
+  status: string
+}
+
+export function buildWorkItems(contentPieces: ContentPiece[]): WorkItem[] {
+  return contentPieces
+    .filter(p => p.type !== 'strategy' && p.status === 'generated')
+    .map(p => ({
+      id: p.id,
+      type: p.type,
+      label: ASSET_LABELS[p.type] ?? p.type,
+      status: p.status,
+    }))
 }
 
 // ───────────────────────────────────────────
