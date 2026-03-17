@@ -40,7 +40,7 @@ Output a clear, actionable strategy (a few short paragraphs or bullet points). N
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 1024,
+    max_tokens: 4096,
     messages: [{ role: 'user', content: userPrompt }],
     system: SYSTEM_PROMPT,
   })
