@@ -115,13 +115,13 @@ function WorkCard({
               whileHover={{ x: 3 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pointer-events-none">
                 <div className="w-1.5 h-1.5 rounded-full bg-white/25 shrink-0" />
                 <span className="font-mono text-[13px] text-zinc-300 group-hover:text-white transition-colors">
                   {item.label}
                 </span>
               </div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500 group-hover:text-zinc-400 transition-colors">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500 group-hover:text-zinc-400 transition-colors pointer-events-none">
                 Review →
               </span>
             </motion.a>
