@@ -352,6 +352,7 @@ export async function completeTask(
   taskId: string,
   taskTitle: string,
   status: 'done' | 'skipped',
+  campaignId: string,
 ): Promise<void> {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -362,4 +363,12 @@ export async function completeTask(
   upsertIntelligenceContext(supabase, user.id, taskTitle, status).catch(() => {
     // Silently fail — intelligence is non-critical
   })
+
+  if (status === 'skipped') {
+    checkAdaptiveTrigger(campaignId).then(async (trigger) => {
+      if (trigger) {
+        await replanCampaign(campaignId).catch(() => {})
+      }
+    }).catch(() => {})
+  }
 }

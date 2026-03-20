@@ -102,8 +102,7 @@ export type WorkspaceChip = {
 
 export function resolveWorkspaceChips(
   campaignState: CampaignState,
-  hasPendingAssets?: boolean,
-  shouldSuggestReplan?: boolean
+  hasPendingAssets?: boolean
 ): WorkspaceChip[] {
   const chips: WorkspaceChip[] = []
 
@@ -149,14 +148,6 @@ export function resolveWorkspaceChips(
     chips.push({
       id: 'generate_assets',
       label: 'Generate campaign assets',
-      prompt: '',
-    })
-  }
-
-  if (shouldSuggestReplan && campaignState.hasTasks && !campaignState.isComplete) {
-    chips.push({
-      id: 'replan',
-      label: 'Adjust plan',
       prompt: '',
     })
   }

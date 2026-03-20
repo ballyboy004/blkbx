@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { getAuthedUserOrRedirect } from '@/lib/profile/profile'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveCampaign, getCampaignContext, getPendingAssets } from '@/lib/modules/campaign/queries'
-import { checkAdaptiveTrigger } from '@/lib/modules/campaign/actions'
 import { resolveCampaignState } from '@/lib/modules/campaign/state'
 import {
   buildMissionCardData,
@@ -32,11 +31,8 @@ export default async function DashboardPage() {
   const pendingAssets = await getPendingAssets(supabase, campaignId, user.id)
   const workItems: WorkItem[] = buildWorkItems(pendingAssets)
 
-  const adaptiveTrigger = await checkAdaptiveTrigger(campaignId).catch(() => null)
-  const shouldSuggestReplan = adaptiveTrigger !== null
-
   const mission: MissionCardData = buildMissionCardData(campaign, campaignState, pendingAssets)
-  const chips: WorkspaceChip[] = resolveWorkspaceChips(campaignState, pendingAssets.length > 0, shouldSuggestReplan)
+  const chips: WorkspaceChip[] = resolveWorkspaceChips(campaignState, pendingAssets.length > 0)
 
   const PHASE_ORDER = ['preparation', 'launch', 'post_release']
   const pendingTasks = tasks

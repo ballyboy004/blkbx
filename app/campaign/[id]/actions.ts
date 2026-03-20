@@ -72,9 +72,9 @@ export async function generateAssets(campaignId: string) {
   return impl(campaignId)
 }
 
-export async function completeTask(taskId: string, taskTitle: string, status: 'done' | 'skipped') {
+export async function completeTask(taskId: string, taskTitle: string, status: 'done' | 'skipped', campaignId: string) {
   const { completeTask: impl } = await import('@/lib/modules/campaign/actions')
-  return impl(taskId, taskTitle, status)
+  return impl(taskId, taskTitle, status, campaignId)
 }
 
 export async function saveTaskDeliverable(taskId: string, note: string): Promise<void> {
@@ -83,16 +83,6 @@ export async function saveTaskDeliverable(taskId: string, note: string): Promise
   if (authError || !user) throw new Error('Unauthorized')
   const { saveDeliverableNote } = await import('@/lib/modules/campaign/mutations')
   await saveDeliverableNote(supabase, taskId, user.id, note)
-}
-
-export async function checkAdaptiveTrigger(campaignId: string) {
-  const { checkAdaptiveTrigger: impl } = await import('@/lib/modules/campaign/actions')
-  return impl(campaignId)
-}
-
-export async function replanCampaign(campaignId: string) {
-  const { replanCampaign: impl } = await import('@/lib/modules/campaign/actions')
-  return impl(campaignId)
 }
 
 export async function generateTaskBrief(taskId: string, campaignId: string): Promise<string> {

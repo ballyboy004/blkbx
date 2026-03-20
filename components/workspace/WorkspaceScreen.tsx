@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { gsap } from 'gsap'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { askBlackbox, generateCampaignTasks, generateAssets, generateStrategy, completeTask, generateTaskBrief, saveTaskDeliverable, replanCampaign } from '@/app/campaign/[id]/actions'
+import { askBlackbox, generateCampaignTasks, generateAssets, generateStrategy, completeTask, generateTaskBrief, saveTaskDeliverable } from '@/app/campaign/[id]/actions'
 import type {
   WorkspaceMessage,
   MissionCardData,
@@ -672,15 +672,11 @@ function AIDrawer({
   loading,
   onClose,
   threadRef,
-  replanPending,
-  onConfirmReplan,
 }: {
   messages: WorkspaceMessage[]
   loading: boolean
   onClose: () => void
   threadRef: React.RefObject<HTMLDivElement>
-  replanPending?: boolean
-  onConfirmReplan?: () => void
 }) {
   return (
     <>
@@ -760,24 +756,6 @@ function AIDrawer({
             )}
           </div>
         </div>
-        {replanPending && onConfirmReplan && (
-          <div style={{ padding: '0 20px 20px' }}>
-            <button
-              type="button"
-              onClick={onConfirmReplan}
-              className="font-mono text-[10px] uppercase tracking-[0.2em] w-full py-2.5"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: '4px',
-                color: 'rgba(255,255,255,0.6)',
-                cursor: 'pointer',
-              }}
-            >
-              Confirm — Regenerate Plan
-            </button>
-          </div>
-        )}
       </motion.div>
     </>
   )
@@ -1036,8 +1014,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
   const [deliverableInput, setDeliverableInput] = useState('')
   const [taskQueueOpen, setTaskQueueOpen] = useState(false)
   const [taskQueueTab, setTaskQueueTab] = useState<'upcoming' | 'history'>('upcoming')
-  const [replanPending, setReplanPending] = useState(false)
-  const [replanConfirmed, setReplanConfirmed] = useState(false)
   const threadRef = useRef<HTMLDivElement>(null)
 
   const displayedTaskId = nextTaskId
@@ -1118,18 +1094,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
       }
       return
     }
-    if (chip.id === 'replan') {
-      setMinimized(false)
-      if (!replanPending) {
-        setReplanPending(true)
-        setMessages(m => [...m, {
-          role: 'assistant',
-          content: "You've skipped this type of task 3+ times. BLACKBOX can regenerate your remaining plan avoiding those patterns.\n\nThis will replace all pending tasks. Completed and skipped tasks are untouched.\n\n**Confirm to regenerate.**"
-        }])
-        return
-      }
-      return
-    }
     if (chip.id === 'new_campaign') {
       window.location.href = '/onboarding'
       return
@@ -1151,7 +1115,7 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
     setOptimisticCompleted((mission.completedTasks ?? 0) + 1)
 
     try {
-      await completeTask(nextTaskId, nextTaskTitle, status)
+      await completeTask(nextTaskId, nextTaskTitle, status, campaignId)
       if (status === 'done') {
         setPendingDeliverableTaskId(nextTaskId)
       }
@@ -1431,22 +1395,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
             loading={loading}
             onClose={() => setMinimized(true)}
             threadRef={threadRef}
-            replanPending={replanPending}
-            onConfirmReplan={async () => {
-              setReplanPending(false)
-              setReplanConfirmed(true)
-              setLoading(true)
-              try {
-                await replanCampaign(campaignId)
-                router.refresh()
-                setMessages(m => [...m, { role: 'assistant', content: 'Plan updated. Patterns you skipped have been removed.' }])
-              } catch {
-                setMessages(m => [...m, { role: 'assistant', content: 'Replan failed. Try again.' }])
-              } finally {
-                setLoading(false)
-                setReplanConfirmed(false)
-              }
-            }}
           />
         )}
         {taskQueueOpen && (
