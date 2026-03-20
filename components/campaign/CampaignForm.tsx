@@ -87,13 +87,26 @@ export function CampaignForm() {
         <label htmlFor="target_release_date" className={typography.label}>
           Target release date
         </label>
-        <input
-          id="target_release_date"
-          type="date"
-          value={releaseDate}
-          onChange={(e) => setReleaseDate(e.target.value)}
-          className={inputClass}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            id="target_release_date"
+            type="date"
+            value={releaseDate}
+            onChange={(e) => setReleaseDate(e.target.value)}
+            onInvalid={(e) => e.preventDefault()}
+            className={inputClass}
+            style={{ flex: 1 }}
+          />
+          {releaseDate && (
+            <button
+              type="button"
+              onClick={() => setReleaseDate('')}
+              className="font-mono text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors px-2 py-1 shrink-0"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       <button

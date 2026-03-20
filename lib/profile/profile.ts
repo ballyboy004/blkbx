@@ -42,6 +42,13 @@ export type Profile = {
   subscription_tier: string | null;
   stripe_customer_id: string | null;
   modules_enabled: string[] | null;
+
+  // Onboarding (adaptive flow)
+  role: string | null;
+  project_status: string | null;
+  readiness_checklist: string[] | null;
+  campaign_goals: string[] | null;
+  primary_blocker: string | null;
 };
 
 export async function getAuthedUserOrRedirect(redirectTo: string = "/") {
@@ -66,7 +73,7 @@ export async function getProfileByUserId(userId: string) {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,artist_archetype,visibility_style,release_philosophy,audience_relationship,reference_artists,onboarding_completed,onboarding_completed_at,subscription_status,subscription_tier,stripe_customer_id,modules_enabled"
+      "id,email,context,primary_goal,genre_sound,career_stage,strengths,weaknesses,constraints,current_focus,current_state,content_activity,release_status,stuck_on,artist_archetype,visibility_style,release_philosophy,audience_relationship,reference_artists,onboarding_completed,onboarding_completed_at,subscription_status,subscription_tier,stripe_customer_id,modules_enabled,role,project_status,readiness_checklist,campaign_goals,primary_blocker"
     )
     .eq("id", userId)
     .maybeSingle();

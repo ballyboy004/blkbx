@@ -37,7 +37,7 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
     setError(null)
     try {
       await approveAsset(piece.id, campaignId)
-      router.push(`/campaign/${campaignId}`)
+      router.push('/dashboard')
     } catch {
       setError('Failed to approve. Try again.')
     } finally {
@@ -50,7 +50,7 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
     setError(null)
     try {
       await rejectAsset(piece.id, campaignId)
-      router.push(`/campaign/${campaignId}`)
+      router.push('/dashboard')
     } catch {
       setError('Failed to reject. Try again.')
     } finally {
@@ -92,26 +92,36 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
       style={{ background: '#0c0c0e' }}
     >
       {/* Header */}
-      <div className="px-6 sm:px-10 pt-10 pb-6 max-w-[600px] mx-auto w-full">
+      <motion.div
+        className="px-6 sm:px-10 pt-10 pb-6 max-w-[600px] mx-auto w-full"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0 }}
+      >
         <Link
-          href={`/campaign/${campaignId}`}
+          href={'/dashboard'}
           className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600 hover:text-zinc-400 transition-colors"
         >
           ← Back
         </Link>
-      </div>
+      </motion.div>
 
       {/* Main content */}
       <div className="flex-1 px-6 sm:px-10 pb-16 max-w-[600px] mx-auto w-full">
         {/* Label */}
-        <div className="mb-6">
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
+        >
           <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600">
             {ASSET_LABELS[piece.type] ?? piece.type}
           </p>
           <p className="font-mono text-[12px] text-zinc-500 mt-1">
             {campaign.title}
           </p>
-        </div>
+        </motion.div>
 
         {/* Content area */}
         {isEditing ? (
@@ -131,7 +141,7 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
             }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
           >
             <pre className="font-mono text-[13px] text-zinc-300 leading-relaxed whitespace-pre-wrap">
               {content}
@@ -140,7 +150,12 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
         )}
 
         {/* Actions */}
-        <div className="mt-6 flex items-center gap-3 flex-wrap">
+        <motion.div
+          className="mt-6 flex items-center gap-3 flex-wrap"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
+        >
           {isEditing ? (
             <>
               <button
@@ -212,7 +227,7 @@ export function AssetReviewScreen({ piece, campaign, campaignId }: Props) {
               </button>
             </>
           )}
-        </div>
+        </motion.div>
 
         {error && (
           <p className="font-mono text-[12px] text-red-400 mt-3">{error}</p>

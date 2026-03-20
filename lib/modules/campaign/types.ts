@@ -63,11 +63,14 @@ export type CampaignTask = {
   campaign_id: string
   user_id: string
   title: string
-  description: string | null
+  description: string
   status: CampaignTaskStatus
   phase: CampaignTaskPhase
   order_index: number
+  parent_id: string | null   // null = milestone, set = sub-task
   due_date: string | null
   created_at: string
   completed_at: string | null
+  ai_context: string | null
+  deliverable_note: string | null
 }

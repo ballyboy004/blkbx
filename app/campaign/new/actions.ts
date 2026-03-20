@@ -1,4 +1,8 @@
 'use server'
 
-export { createCampaign } from '@/lib/modules/campaign/actions'
-export type { CreateCampaignInput as CreateCampaignData } from '@/lib/modules/campaign/types'
+import { createCampaign as createCampaignImpl } from '@/lib/modules/campaign/actions'
+import type { CreateCampaignInput } from '@/lib/modules/campaign/types'
+
+export async function createCampaign(formData: CreateCampaignInput): Promise<{ id: string }> {
+  return createCampaignImpl(formData)
+}

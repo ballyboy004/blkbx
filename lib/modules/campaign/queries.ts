@@ -73,3 +73,33 @@ export async function getActiveCampaign(
     .maybeSingle()
   return data as Campaign | null
 }
+
+export async function getPendingAssets(
+  supabase: SupabaseClient,
+  campaignId: string,
+  userId: string
+): Promise<ContentPiece[]> {
+  const { data } = await supabase
+    .from('content_pieces')
+    .select('*')
+    .eq('campaign_id', campaignId)
+    .eq('user_id', userId)
+    .eq('status', 'generated')
+    .neq('type', 'strategy')
+    .order('created_at', { ascending: true })
+  return (data ?? []) as ContentPiece[]
+}
+
+export async function getContentPiece(
+  supabase: SupabaseClient,
+  pieceId: string,
+  userId: string
+): Promise<ContentPiece | null> {
+  const { data } = await supabase
+    .from('content_pieces')
+    .select('*')
+    .eq('id', pieceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return data as ContentPiece | null
+}

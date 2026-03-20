@@ -24,6 +24,8 @@ export type MissionCardData = {
 
   progressLabel: string
   progressPercent: number
+  completedTasks: number
+  totalTasks: number
 
   hasTasks: boolean
   hasStrategy: boolean
@@ -80,6 +82,8 @@ export function buildMissionCardData(
     currentMilestoneTitle,
     progressLabel,
     progressPercent,
+    completedTasks: campaignState.completedTasks,
+    totalTasks: campaignState.totalTasks,
     hasTasks: campaignState.hasTasks,
     hasStrategy: campaignState.hasStrategy,
     isComplete: campaignState.isComplete,
@@ -98,7 +102,8 @@ export type WorkspaceChip = {
 
 export function resolveWorkspaceChips(
   campaignState: CampaignState,
-  hasPendingAssets?: boolean
+  hasPendingAssets?: boolean,
+  shouldSuggestReplan?: boolean
 ): WorkspaceChip[] {
   const chips: WorkspaceChip[] = []
 
@@ -144,6 +149,22 @@ export function resolveWorkspaceChips(
     chips.push({
       id: 'generate_assets',
       label: 'Generate campaign assets',
+      prompt: '',
+    })
+  }
+
+  if (shouldSuggestReplan && campaignState.hasTasks && !campaignState.isComplete) {
+    chips.push({
+      id: 'replan',
+      label: 'Adjust plan',
+      prompt: '',
+    })
+  }
+
+  if (campaignState.isComplete) {
+    chips.push({
+      id: 'new_campaign',
+      label: 'Start next release',
       prompt: '',
     })
   }

@@ -136,7 +136,7 @@ export const typography = {
   cardHeader: 'font-mono text-[13px] font-semibold tracking-[0.2em] uppercase text-zinc-500',
 
   // Task title
-  taskTitle: 'font-mono text-[18px] font-bold text-white',
+  taskTitle: 'font-inter font-black text-[20px] text-white leading-tight tracking-tight',
 
   // Body text
   body: 'font-mono text-[14px] font-normal leading-relaxed text-zinc-300',

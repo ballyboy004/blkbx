@@ -42,6 +42,7 @@ export type CampaignTaskGeneratorInput = {
   campaignTitle: string
   releaseType: string | null
   releaseDate: string | null
+  skipPatterns?: Record<string, number> | null
 }
 
 const SYSTEM_PROMPT = `You are a music release campaign strategist for independent artists.
@@ -136,6 +137,17 @@ export async function generateTasksContent(
       ? input.readinessChecklist.map((r) => `- ${r}`).join('\n')
       : '- nothing checked yet'
 
+  const skipBlock = input.skipPatterns && Object.keys(input.skipPatterns).length > 0
+    ? `TASK TYPES THIS ARTIST CONSISTENTLY SKIPS (avoid recommending these):
+${Object.entries(input.skipPatterns)
+  .sort(([, a], [, b]) => b - a)
+  .map(([type, count]) => `- ${type} (skipped ${count} time${count > 1 ? 's' : ''})`)
+  .join('\n')}
+
+Do not generate tasks of these types unless absolutely essential to the campaign.
+If you must include them, note them as optional.`
+    : ''
+
   const userPrompt = `ARTIST:
 - Name: ${artistName}
 - Genre/sound: ${input.genreSound || 'not provided'}
@@ -150,6 +162,7 @@ CAMPAIGN:
 
 ALREADY HANDLED (skip tasks for these):
 ${readinessBlock}
+${skipBlock ? `\nBEHAVIORAL CONTEXT:\n${skipBlock}` : ''}
 
 Generate the campaign execution plan.`
 

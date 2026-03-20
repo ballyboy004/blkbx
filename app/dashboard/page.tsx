@@ -1,225 +1,97 @@
-import type { Profile } from "@/lib/profile/profile";
-import { getAuthedUserOrRedirect, requireOnboardingCompleteOrRedirect } from "@/lib/profile/profile";
-import { createClient } from "@/lib/supabase/server";
-import { getCompleteDashboardIntelligence } from "@/lib/dashboard/intelligence";
-import { getBehavioralHistory } from "@/lib/intelligence/history";
-import { getActiveCampaign, getCampaignContext } from "@/lib/modules/campaign/queries";
-import { resolveCampaignState, type CampaignState } from "@/lib/modules/campaign/state";
-import CollapsibleSection from "@/components/dashboard/CollapsibleSection";
-import TodayCard from "@/components/dashboard/TodayCard";
-import FreshButton from "@/components/dashboard/FreshButton";
-import EditProfileModal from "@/components/dashboard/EditProfileModal";
-import SignOutButton from "@/components/dashboard/SignOutButton";
-import { CampaignMissionCard } from "@/components/campaign/CampaignMissionCard";
-import { Logo } from "@/components/ui/Logo";
-import { components, typography } from "@/lib/design-system";
+import { redirect } from 'next/navigation'
+import { getAuthedUserOrRedirect } from '@/lib/profile/profile'
+import { createClient } from '@/lib/supabase/server'
+import { getActiveCampaign, getCampaignContext, getPendingAssets } from '@/lib/modules/campaign/queries'
+import { checkAdaptiveTrigger } from '@/lib/modules/campaign/actions'
+import { resolveCampaignState } from '@/lib/modules/campaign/state'
+import {
+  buildMissionCardData,
+  buildWorkItems,
+  resolveWorkspaceChips,
+  type MissionCardData,
+  type WorkspaceChip,
+  type WorkItem,
+} from '@/lib/modules/campaign/intelligence'
+import { WorkspaceScreen } from '@/components/workspace/WorkspaceScreen'
 
 export default async function DashboardPage() {
-  const { user } = await getAuthedUserOrRedirect("/");
-  if (!user) return null;
+  const { user } = await getAuthedUserOrRedirect('/')
+  if (!user) return null
 
-  const profile = (await requireOnboardingCompleteOrRedirect(user.id)) as Profile;
+  const supabase = await createClient()
 
-  const supabase = await createClient();
-  const activeCampaign = await getActiveCampaign(supabase, user.id);
-  let campaignState: CampaignState | null = null;
-  if (activeCampaign) {
-    const { tasks, strategy } = await getCampaignContext(supabase, activeCampaign.id, user.id);
-    campaignState = resolveCampaignState(tasks, strategy);
+  const activeCampaign = await getActiveCampaign(supabase, user.id)
+  if (!activeCampaign) redirect('/onboarding')
+
+  const campaignId = activeCampaign.id
+  const campaign = activeCampaign
+
+  const { tasks, strategy } = await getCampaignContext(supabase, campaignId, user.id)
+  const campaignState = resolveCampaignState(tasks, strategy)
+
+  const pendingAssets = await getPendingAssets(supabase, campaignId, user.id)
+  const workItems: WorkItem[] = buildWorkItems(pendingAssets)
+
+  const adaptiveTrigger = await checkAdaptiveTrigger(campaignId).catch(() => null)
+  const shouldSuggestReplan = adaptiveTrigger !== null
+
+  const mission: MissionCardData = buildMissionCardData(campaign, campaignState, pendingAssets)
+  const chips: WorkspaceChip[] = resolveWorkspaceChips(campaignState, pendingAssets.length > 0, shouldSuggestReplan)
+
+  const PHASE_ORDER = ['preparation', 'launch', 'post_release']
+  const pendingTasks = tasks
+    .filter(t => t.parent_id !== null && t.status === 'pending')
+    .sort((a, b) => {
+      const phaseA = PHASE_ORDER.indexOf(a.phase)
+      const phaseB = PHASE_ORDER.indexOf(b.phase)
+      if (phaseA !== phaseB) return phaseA - phaseB
+      return a.order_index - b.order_index
+    })
+    .map(t => {
+      const milestone = tasks.find(m => m.id === t.parent_id)
+      return {
+        id: t.id,
+        title: t.title,
+        phase: t.phase,
+        milestoneTitle: milestone?.title ?? null,
+        description: t.description ?? null,
+        aiContext: t.ai_context ?? null,
+      }
+    })
+
+  const PHASE_LABELS: Record<string, string> = {
+    preparation: 'Preparation',
+    launch: 'Launch',
+    post_release: 'After Release',
   }
 
-  const intelligence = await getCompleteDashboardIntelligence(user.id, profile);
-
-  // Fetch recent tasks for the TodayCard
-  const history = await getBehavioralHistory(user.id, { limit: 10 });
-  const recentTasks = history.recentTasks.map(t => ({
-    id: t.id,
-    title: t.title,
-    status: t.status,
-    created_at: t.completed_at,
-    reflection: t.reflection,
-    reasoning: t.reasoning,
-    guardrail: t.guardrail
-  }));
-
-  const hasTask = intelligence.priorityTask?.title && intelligence.priorityTask.title !== "—";
+  const completedTasks = tasks
+    .filter(t => t.parent_id !== null && (t.status === 'done' || t.status === 'skipped'))
+    .sort((a, b) => {
+      const phaseA = PHASE_ORDER.indexOf(a.phase)
+      const phaseB = PHASE_ORDER.indexOf(b.phase)
+      if (phaseA !== phaseB) return phaseA - phaseB
+      return a.order_index - b.order_index
+    })
+    .map(t => ({
+      id: t.id,
+      title: t.title,
+      phase: t.phase,
+      phaseLabel: PHASE_LABELS[t.phase] ?? t.phase,
+      status: t.status as 'done' | 'skipped',
+      deliverableNote: t.deliverable_note ?? null,
+    }))
 
   return (
-    <div 
-      className="relative min-h-screen w-full overflow-hidden"
-      style={{
-        background: `
-          radial-gradient(circle at 20% 30%, rgba(30, 40, 60, 0.6) 0%, transparent 50%),
-          radial-gradient(circle at 80% 70%, rgba(40, 30, 50, 0.5) 0%, transparent 50%),
-          #0a0a0a
-        `
-      }}
-    >
-      {/* 3D Void Vignette Effect */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(30,30,30,0.2) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: "radial-gradient(ellipse 60% 50% at center, rgba(40,40,40,0.1) 0%, transparent 60%)",
-            boxShadow: "inset 0 0 150px 80px rgba(0,0,0,0.5)",
-          }}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen px-4 sm:px-6 md:px-10 py-8 sm:py-12">
-        <div className="max-w-[1100px] mx-auto space-y-6 sm:space-y-8">
-          
-          {/* Header */}
-          <header className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <Logo size="md" href="/" />
-              <p className="text-xs uppercase tracking-[0.2em] font-mono text-zinc-500">Dashboard</p>
-            </div>
-
-            <SignOutButton />
-          </header>
-
-          <CampaignMissionCard campaign={activeCampaign} campaignState={campaignState} />
-
-          {/* TODAY - HERO POSITION */}
-          {hasTask ? (
-            <div className="relative">
-              {/* Background glow behind TODAY card */}
-              <div 
-                className="absolute inset-0 -z-10 rounded-[4px] opacity-30"
-                style={{
-                  background: 'radial-gradient(ellipse at center, rgba(40, 40, 50, 0.15) 0%, transparent 70%)',
-                  transform: 'translateY(8px) scale(1.02)'
-                }}
-              />
-              <TodayCard task={intelligence.priorityTask} recentTasks={recentTasks} />
-            </div>
-          ) : (
-            <div className="relative">
-              <div 
-                className="absolute inset-0 -z-10 rounded-[4px] opacity-30"
-                style={{
-                  background: 'radial-gradient(ellipse at center, rgba(40, 40, 50, 0.15) 0%, transparent 70%)',
-                  transform: 'translateY(8px) scale(1.02)'
-                }}
-              />
-              <div className="p-6 sm:p-8 md:p-10" style={components.card.elevated}>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className={typography.cardHeader}>Today</h2>
-                </div>
-                <div className="py-8 space-y-4 text-center">
-                  <p className={typography.body}>No task yet</p>
-                  <p className="font-mono text-[12px] text-zinc-500">
-                    BLACKBOX is learning your patterns.
-                    <br />
-                    Edit your profile to help it generate better tasks.
-                  </p>
-                  <p className="font-mono text-[10px] text-zinc-600 mt-4">
-                    ↓ Update your profile below
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* CURRENT READ */}
-          <div className="p-6 sm:p-8 md:p-10" style={components.card.base}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={typography.cardHeader}>Current Read</h2>
-              <div className="flex items-center gap-2 sm:gap-3">
-                {intelligence.metadata?.updatedAgo && (
-                  <span className="font-mono text-[10px] text-zinc-600 lowercase">
-                    {intelligence.metadata.updatedAgo}
-                  </span>
-                )}
-                <FreshButton />
-              </div>
-            </div>
-            <p className={typography.body}>{intelligence.currentRead}</p>
-          </div>
-
-          {/* PROFILE + PATTERNS - 2-COLUMN GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-            {/* PROFILE CARD */}
-            <div className="p-6 sm:p-8" style={components.card.elevated}>
-              <div className="flex justify-between items-center mb-6 h-[44px]">
-                <h2 className={typography.cardHeader}>Profile</h2>
-                <EditProfileModal profile={profile} />
-              </div>
-              <div className="space-y-5">
-                <div>
-                  <span className={`${typography.label} block mb-2`}>Summary</span>
-                  <p className={typography.body}>{intelligence.identitySummary || "—"}</p>
-                </div>
-                <div>
-                  <span className={`${typography.label} block mb-2`}>Genre</span>
-                  <p className={typography.body}>{profile.genre_sound || "—"}</p>
-                </div>
-                <div>
-                  <span className={`${typography.label} block mb-2`}>Stage</span>
-                  <p className={`${typography.body} capitalize`}>{profile.career_stage || "—"}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* PATTERNS CARD */}
-            <div className="p-6 sm:p-8" style={components.card.elevated}>
-              <div className="flex justify-between items-center mb-6 h-[44px]">
-                <h2 className={typography.cardHeader}>Patterns</h2>
-                <div className="w-[60px]"></div>
-              </div>
-              <div className="space-y-5">
-                <div>
-                  <span className={`${typography.label} block mb-2`}>Edge</span>
-                  <p className={typography.body}>{intelligence.edge || "—"}</p>
-                </div>
-                <div>
-                  <span className={`${typography.label} block mb-2`}>Friction</span>
-                  <p className={typography.body}>{intelligence.friction || "—"}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* COLLAPSIBLE SECTIONS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CollapsibleSection title="Context Notes">
-              {intelligence.strategicContext?.length ? (
-                <ul className="space-y-3">
-                  {intelligence.strategicContext.map((b: string, i: number) => (
-                    <li key={i} className={typography.body}>• {b}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="font-mono text-[13px] text-zinc-400 italic">—</p>
-              )}
-            </CollapsibleSection>
-
-            <CollapsibleSection title="Next Actions">
-              {intelligence.nextActions?.length ? (
-                <div className="space-y-3">
-                  {intelligence.nextActions.map((action: string, i: number) => (
-                    <p key={i} className={typography.body}>• {action}</p>
-                  ))}
-                </div>
-              ) : (
-                <p className="font-mono text-[13px] text-zinc-400 italic">
-                  Complete today's task to see what's next.
-                </p>
-              )}
-            </CollapsibleSection>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    <WorkspaceScreen
+      campaignId={campaignId}
+      mission={mission}
+      chips={chips}
+      workItems={workItems}
+      nextTaskId={campaignState.nextTask?.id ?? null}
+      nextTaskTitle={campaignState.nextTask?.title ?? null}
+      allTasks={pendingTasks}
+      completedTasks={completedTasks}
+    />
+  )
 }

@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, content_activity, release_status, stuck_on, artist_archetype, visibility_style, release_philosophy, audience_relationship, reference_artists, onboarding_completed"
+      "context, primary_goal, genre_sound, career_stage, strengths, weaknesses, constraints, current_focus, content_activity, release_status, stuck_on, artist_archetype, visibility_style, release_philosophy, audience_relationship, reference_artists, onboarding_completed, role, project_status, readiness_checklist, campaign_goals, primary_blocker"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -23,6 +23,19 @@ export default async function OnboardingPage() {
   if (profileError) throw profileError;
 
   if (profile?.onboarding_completed) redirect("/dashboard");
+
+  const parseList = (v: unknown): string[] => {
+    if (Array.isArray(v)) return v
+    if (typeof v === 'string') {
+      try {
+        const parsed = JSON.parse(v)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return v ? v.split(',').map((s: string) => s.trim()).filter(Boolean) : []
+      }
+    }
+    return []
+  }
 
   return (
     <OnboardingClient
@@ -45,6 +58,11 @@ export default async function OnboardingPage() {
         release_philosophy: profile?.release_philosophy ?? "",
         audience_relationship: profile?.audience_relationship ?? "",
         reference_artists: profile?.reference_artists ?? "",
+        role: profile?.role ?? "",
+        project_status: profile?.project_status ?? "",
+        readiness_checklist: parseList(profile?.readiness_checklist),
+        campaign_goals: parseList(profile?.campaign_goals),
+        primary_blocker: profile?.primary_blocker ?? "",
       }}
     />
   );

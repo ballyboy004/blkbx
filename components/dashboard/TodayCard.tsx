@@ -199,7 +199,7 @@ export default function TodayCard({ task: initialTask, isHero = false, recentTas
         <div className="absolute inset-0 bg-black/95" />
         <div style={components.overlay.modal} className="relative w-full max-w-2xl mx-4 sm:mx-0 rounded-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-start justify-between p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
-            <h2 className="font-mono text-[14px] font-semibold text-white flex-1 pr-2">{task.title}</h2>
+            <h2 className="font-inter font-black text-[20px] text-white leading-tight tracking-tight flex-1 pr-2">{task.title}</h2>
             <button 
               onClick={() => setShowGuideModal(false)} 
               className="btn-recess text-zinc-500 flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded"

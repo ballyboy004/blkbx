@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -196,11 +197,9 @@ export default function OnboardingClient({
   initialProfile: InitialProfile;
 }) {
   const supabase = createClient();
-
   const [panelIndex, setPanelIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
-  const [isEntering, setIsEntering] = useState(false);
   const [interpretation, setInterpretation] = useState("");
   const [isGeneratingInterpretation, setIsGeneratingInterpretation] =
     useState(false);
@@ -339,7 +338,7 @@ export default function OnboardingClient({
     if (isArtistOrBoth && isReadyOrInProgress) {
       try {
         const { id } = await createCampaignFromProfile();
-        return `/campaign/${id}`;
+        return '/dashboard';
       } catch {
         return "/dashboard";
       }
@@ -348,12 +347,8 @@ export default function OnboardingClient({
   }
 
   async function handleEnterBlackbox() {
-    setIsEntering(true);
-    const [, destination] = await Promise.all([
-      new Promise<void>((resolve) => setTimeout(resolve, 750)),
-      resolveDestination(),
-    ]);
-    window.location.assign(destination);
+    const destination = await resolveDestination()
+    window.location.assign(destination)
   }
 
   const toggleMulti = useCallback(
@@ -464,24 +459,11 @@ export default function OnboardingClient({
       className="relative min-h-screen w-full overflow-y-auto"
       style={{ background: "#0c0c0e" }}
     >
-      <EntryOverlay active={isEntering} />
-
-      <motion.div
-        className="relative z-10 min-h-screen flex flex-col items-center px-4 py-12"
-        initial={false}
-        animate={
-          isEntering
-            ? { scale: 0.94, opacity: 0, filter: "blur(4px)" }
-            : { scale: 1, opacity: 1, filter: "blur(0px)" }
-        }
-        transition={{ duration: 0.4, ease: [0.4, 0, 1, 1] }}
-      >
+      <div className="relative z-10 min-h-screen flex flex-col items-center px-4 py-12">
         <div className="w-full max-w-[600px] flex flex-col flex-1">
           <div className="text-center space-y-4 shrink-0">
             <Logo size="lg" href="/" />
-            <p className="text-xs lowercase tracking-tight font-mono text-zinc-500">
-              {stepMeta}
-            </p>
+            <StepCounter meta={stepMeta} />
           </div>
 
           <div
@@ -580,15 +562,12 @@ export default function OnboardingClient({
               disabled={
                 isFinishing ||
                 isGeneratingInterpretation ||
-                isEntering ||
                 (currentPanelId === "interpretation" && !interpretation)
               }
               className="btn-lift flex-1 h-11 min-h-[44px] bg-transparent border-zinc-800 text-zinc-300 font-inter font-black tracking-tight uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentPanelId === "interpretation"
-                ? isEntering
-                  ? "entering..."
-                  : "enter blackbox →"
+                ? "enter blackbox →"
                 : isFinishing
                   ? "saving..."
                   : isGeneratingInterpretation
@@ -609,7 +588,7 @@ export default function OnboardingClient({
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -718,29 +697,20 @@ function PanelContent({
         title="what do you do?"
         description="this shapes everything blackbox builds for you."
       >
-        <div className="flex flex-wrap gap-2">
-          <StagePill
-            active={role === "artist"}
-            onClick={() => setRole("artist")}
-          >
+        <PillGrid trigger="role">
+          <StagePill active={role === "artist"} onClick={() => setRole("artist")}>
             i'm an artist — i perform and release music
           </StagePill>
-          <StagePill
-            active={role === "producer"}
-            onClick={() => setRole("producer")}
-          >
+          <StagePill active={role === "producer"} onClick={() => setRole("producer")}>
             i'm a producer — i make beats and place them
           </StagePill>
           <StagePill active={role === "both"} onClick={() => setRole("both")}>
             i do both — i produce and release my own stuff
           </StagePill>
-          <StagePill
-            active={role === "songwriter"}
-            onClick={() => setRole("songwriter")}
-          >
+          <StagePill active={role === "songwriter"} onClick={() => setRole("songwriter")}>
             i write for other artists
           </StagePill>
-        </div>
+        </PillGrid>
       </StepShell>
     );
   }
@@ -772,38 +742,23 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
-              <StagePill
-                active={projectStatus === "ready"}
-                onClick={() => setProjectStatus("ready")}
-              >
+            <PillGrid trigger="project_status">
+              <StagePill active={projectStatus === "ready"} onClick={() => setProjectStatus("ready")}>
                 i have something ready to release or just released
               </StagePill>
-              <StagePill
-                active={projectStatus === "in_progress"}
-                onClick={() => setProjectStatus("in_progress")}
-              >
+              <StagePill active={projectStatus === "in_progress"} onClick={() => setProjectStatus("in_progress")}>
                 i'm working on something, not ready yet
               </StagePill>
-              <StagePill
-                active={projectStatus === "between"}
-                onClick={() => setProjectStatus("between")}
-              >
+              <StagePill active={projectStatus === "between"} onClick={() => setProjectStatus("between")}>
                 i have a catalog but i'm between projects
               </StagePill>
-              <StagePill
-                active={projectStatus === "starting"}
-                onClick={() => setProjectStatus("starting")}
-              >
+              <StagePill active={projectStatus === "starting"} onClick={() => setProjectStatus("starting")}>
                 i'm just starting out — building from scratch
               </StagePill>
-              <StagePill
-                active={projectStatus === "other"}
-                onClick={() => setProjectStatus("other")}
-              >
+              <StagePill active={projectStatus === "other"} onClick={() => setProjectStatus("other")}>
                 other...
               </StagePill>
-            </div>
+            </PillGrid>
           </FieldBlock>
           {projectStatus === "other" && (
             <OtherTextInput
@@ -824,7 +779,7 @@ function PanelContent({
         description="check everything you've already handled — blackbox skips what's done."
       >
         <FieldBlock label="">
-          <div className="flex flex-wrap gap-2">
+          <PillGrid trigger="readiness">
             {READINESS_OPTIONS.map((opt) => (
               <ActivityPill
                 key={opt.value}
@@ -834,7 +789,7 @@ function PanelContent({
                 {opt.label}
               </ActivityPill>
             ))}
-          </div>
+          </PillGrid>
         </FieldBlock>
       </StepShell>
     );
@@ -848,7 +803,7 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
+            <PillGrid trigger="goals">
               {GOALS_OPTIONS.map((opt) => (
                 <ActivityPill
                   key={opt.value}
@@ -864,7 +819,7 @@ function PanelContent({
                   {opt.label}
                 </ActivityPill>
               ))}
-            </div>
+            </PillGrid>
           </FieldBlock>
           {campaignGoals.includes("other") && (
             <OtherTextInput
@@ -886,7 +841,7 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
+            <PillGrid trigger="producer_goals">
               {PRODUCER_GOALS_OPTIONS.map((opt) => (
                 <ActivityPill
                   key={opt.value}
@@ -902,7 +857,7 @@ function PanelContent({
                   {opt.label}
                 </ActivityPill>
               ))}
-            </div>
+            </PillGrid>
           </FieldBlock>
           {producerGoals.includes("other") && (
             <OtherTextInput
@@ -924,7 +879,7 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
+            <PillGrid trigger="catalog">
               {CATALOG_OPTIONS.map((opt) => (
                 <StagePill
                   key={opt.value}
@@ -934,7 +889,7 @@ function PanelContent({
                   {opt.label}
                 </StagePill>
               ))}
-            </div>
+            </PillGrid>
           </FieldBlock>
           {catalogStatus === "other" && (
             <OtherTextInput
@@ -956,7 +911,7 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
+            <PillGrid trigger="blocker">
               {BLOCKER_OPTIONS.map((opt) => (
                 <StagePill
                   key={opt.value}
@@ -966,7 +921,7 @@ function PanelContent({
                   {opt.label}
                 </StagePill>
               ))}
-            </div>
+            </PillGrid>
           </FieldBlock>
           {primaryBlocker === "other" && (
             <OtherTextInput
@@ -988,7 +943,7 @@ function PanelContent({
       >
         <div className="space-y-4">
           <FieldBlock label="">
-            <div className="flex flex-wrap gap-2">
+            <PillGrid trigger="constraints">
               {CONSTRAINTS_OPTIONS.map((opt) => (
                 <ActivityPill
                   key={opt.value}
@@ -1010,7 +965,7 @@ function PanelContent({
               >
                 other...
               </ActivityPill>
-            </div>
+            </PillGrid>
           </FieldBlock>
           {constraints.includes("other") && (
             <OtherTextInput
@@ -1041,13 +996,18 @@ function PanelContent({
           ) : (
             <>
               {interpretation && (
-                <div className="space-y-4">
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                >
                   {typedInterpretation.split('\n').filter(s => s.trim()).map((sentence, i) => (
                     <p key={i} className="font-mono text-sm text-zinc-300 leading-relaxed lowercase">
                       {sentence.trim()}
                     </p>
                   ))}
-                </div>
+                </motion.div>
               )}
               <p className="font-mono text-xs text-zinc-600 lowercase">
                 your first move is waiting inside.
@@ -1062,85 +1022,109 @@ function PanelContent({
   return null;
 }
 
-// --- Entry overlay ---
+// --- UI primitives ---
 
-function EntryOverlay({ active }: { active: boolean }) {
+function StepCounter({ meta }: { meta: string }) {
+  const ref = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (!ref.current) return
+    gsap.fromTo(ref.current,
+      { opacity: 0.3, y: 2 },
+      { opacity: 1, y: 0, duration: 0.25, ease: 'power1.out' }
+    )
+  }, [meta])
   return (
-    <AnimatePresence>
-      {active && (
-        <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ backgroundColor: "transparent", pointerEvents: "all" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.05 }}
-        >
-          <motion.div
-            className="absolute"
-            style={{
-              width: 4,
-              height: 4,
-              borderRadius: "50%",
-              backgroundColor: "#000",
-            }}
-            initial={{ scale: 1 }}
-            animate={{ scale: 2000 }}
-            transition={{ duration: 0.65, ease: [0.4, 0, 1, 1] }}
-          />
-          <motion.div
-            className="absolute"
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              border: "1px solid rgba(255,255,255,0.15)",
-            }}
-            initial={{ scale: 0, opacity: 0.6 }}
-            animate={{ scale: 30, opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.2, 0, 0.8, 1] }}
-          />
-          <motion.div
-            className="absolute"
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-            initial={{ scale: 0, opacity: 0.4 }}
-            animate={{ scale: 20, opacity: 0 }}
-            transition={{ duration: 0.5, delay: 0.08, ease: [0.2, 0, 0.8, 1] }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+    <p
+      ref={ref}
+      className="text-xs lowercase tracking-tight font-mono text-zinc-500"
+      style={{ opacity: 0.3 }}
+    >
+      {meta}
+    </p>
+  )
 }
 
-// --- UI primitives ---
+function PillGrid({ children, trigger }: { children: React.ReactNode; trigger: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!ref.current) return
+    const pills = ref.current.querySelectorAll('[data-pill]')
+    gsap.fromTo(pills,
+      { opacity: 0, y: 10, scale: 0.96 },
+      {
+        opacity: 1, y: 0, scale: 1, duration: 0.28, ease: 'power2.out',
+        stagger: { each: 0.06, from: 'start' },
+        delay: 0.15,
+      }
+    )
+  }, [trigger])
+  return (
+    <div ref={ref} className="flex flex-wrap gap-2">
+      {children}
+    </div>
+  )
+}
 
 function StepShell({
   title,
   description,
   children,
 }: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
+  title: string
+  description: string
+  children: React.ReactNode
 }) {
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const descRef = useRef<HTMLParagraphElement>(null)
+  const childRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const tl = gsap.timeline()
+
+    tl.fromTo(titleRef.current,
+      { opacity: 0.15, y: 6, filter: 'blur(2px)' },
+      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.38, ease: 'power2.out' }
+    )
+    .fromTo(descRef.current,
+      { opacity: 0, y: 4 },
+      { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' },
+      '-=0.2'
+    )
+    .fromTo(childRef.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.15, ease: 'none' },
+      '-=0.15'
+    )
+  }, [title])
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h2 className="text-2xl font-inter font-black tracking-tight text-white lowercase">
+        <h2
+          ref={titleRef}
+          className="text-2xl font-inter font-black tracking-tight text-white lowercase"
+          style={{ opacity: 0 }}
+        >
           {title}
         </h2>
-        <p className="text-sm font-mono tracking-tight text-zinc-400 lowercase leading-relaxed">
-          {description}
-        </p>
+        {description ? (
+          <p
+            ref={descRef}
+            className="text-sm font-mono tracking-tight text-zinc-400 lowercase leading-relaxed"
+            style={{ opacity: 0 }}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
-      {children}
+      <div
+        ref={childRef}
+        style={{ opacity: 0 }}
+      >
+        {children}
+      </div>
     </div>
-  );
+  )
 }
 
 function FieldBlock({
@@ -1237,6 +1221,7 @@ function StagePill({
   return (
     <button
       type="button"
+      data-pill=""
       onClick={onClick}
       className={[
         "btn-recess h-10 px-4 rounded-md border font-mono text-sm tracking-tight lowercase",
@@ -1262,6 +1247,7 @@ function ActivityPill({
   return (
     <button
       type="button"
+      data-pill=""
       onClick={onClick}
       className={[
         "btn-recess px-4 py-2.5 rounded-md border font-mono text-xs tracking-tight lowercase min-h-[44px]",
