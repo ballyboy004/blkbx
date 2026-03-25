@@ -5,6 +5,20 @@ Historical decisions from V1 build are in BLACKBOX_DECISION_LOG.md.
 
 ---
 
+## 2026-03-19 Longitudinal Intelligence — The Core Moat
+- BLACKBOX's long-term differentiator is a compounding behavioral model per artist — not just session-level adaptation but career-level pattern recognition
+- Five intelligence layers planned:
+  1. Behavioral patterns — skip/completion/preference (partially built in intelligence_context)
+  2. Execution quality signals — deliverable rate, time-to-completion, confidence indicators (not built)
+  3. Campaign outcome tracking — artist-reported results close the feedback loop (not built)
+  4. Cross-campaign synthesis — stall points, avoidance patterns, execution style across releases (not built)
+  5. Predictive task generation — by campaign 3-4, plans are shaped around real behavior not generic prompts (not built)
+- intelligence_context schema is designed to hold all of this — data model can grow without restructuring
+- No other tool in the music career/marketing space does this — this is the moat
+- Execution priority: get paying users first so real behavior data exists to feed the system
+
+---
+
 ## 2026-03-19 BLACKBOX as Environment — Motion System Direction
 - Decided BLACKBOX should feel like a spatial environment, not a dashboard
 - Every interactive surface should respond to presence: hover depth, cursor-reactive tilt, ambient idle motion

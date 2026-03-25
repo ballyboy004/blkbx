@@ -165,10 +165,12 @@ export async function upsertIntelligenceContext(
   userId: string,
   taskTitle: string,
   status: 'done' | 'skipped',
+  taskCreatedAt?: string | null,
+  hasDeliverable?: boolean,
 ): Promise<void> {
   const { data: existing } = await supabase
     .from('intelligence_context')
-    .select('skip_patterns, preferred_task_types')
+    .select('skip_patterns, preferred_task_types, execution_signals')
     .eq('user_id', userId)
     .maybeSingle()
 
@@ -187,11 +189,42 @@ export async function upsertIntelligenceContext(
   const total = totalDone + totalSkipped
   const completionRate = total > 0 ? totalDone / total : 0
 
+  const existingSignals = ((existing as any)?.execution_signals as Record<string, any>) ?? {}
+
+  if (status === 'done' && taskCreatedAt) {
+    const createdMs = new Date(taskCreatedAt).getTime()
+    const completedMs = Date.now()
+    const hoursToComplete = Math.round((completedMs - createdMs) / (1000 * 60 * 60))
+
+    const timeByType = (existingSignals.time_to_complete_by_type as Record<string, number[]>) ?? {}
+    if (!timeByType[taskType]) timeByType[taskType] = []
+    timeByType[taskType].push(hoursToComplete)
+    if (timeByType[taskType].length > 10) timeByType[taskType].shift()
+    existingSignals.time_to_complete_by_type = timeByType
+  }
+
+  if (status === 'done') {
+    const deliverableStats = (existingSignals.deliverable_stats as { done: number; with_deliverable: number }) ?? { done: 0, with_deliverable: 0 }
+    deliverableStats.done += 1
+    if (hasDeliverable) deliverableStats.with_deliverable += 1
+    existingSignals.deliverable_stats = deliverableStats
+    existingSignals.deliverable_rate = deliverableStats.done > 0
+      ? Math.round((deliverableStats.with_deliverable / deliverableStats.done) * 100) / 100
+      : 0
+  }
+
+  if (status === 'skipped') {
+    const stallPatterns = (existingSignals.stall_patterns as Record<string, number>) ?? {}
+    stallPatterns[taskType] = (stallPatterns[taskType] ?? 0) + 1
+    existingSignals.stall_patterns = stallPatterns
+  }
+
   await supabase.from('intelligence_context').upsert({
     user_id: userId,
     skip_patterns: skipPatterns,
     preferred_task_types: preferredTypes,
     completion_rate: completionRate,
+    execution_signals: existingSignals,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' })
 }

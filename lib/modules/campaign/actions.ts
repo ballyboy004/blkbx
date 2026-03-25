@@ -106,11 +106,12 @@ export async function generateCampaignTasks(campaignId: string): Promise<Campaig
   // Fetch behavioral context
   const { data: intelligenceCtx } = await supabase
     .from('intelligence_context')
-    .select('skip_patterns')
+    .select('skip_patterns, execution_signals')
     .eq('user_id', user.id)
     .maybeSingle()
 
   const skipPatterns = (intelligenceCtx?.skip_patterns as Record<string, number> | null) ?? null
+  const executionSignals = (intelligenceCtx?.execution_signals as CampaignTaskGeneratorInput['executionSignals']) ?? null
 
   const input: CampaignTaskGeneratorInput = {
     artistName: (profile as typeof profile & { artist_name?: string }).artist_name ?? profile.context ?? 'Independent artist',
@@ -124,6 +125,7 @@ export async function generateCampaignTasks(campaignId: string): Promise<Campaig
     releaseType: campaign.release_type ?? null,
     releaseDate: campaign.release_date ?? null,
     skipPatterns,
+    executionSignals,
   }
 
   const milestones: GeneratedMilestone[] = await generateTasksContent(input)
@@ -360,7 +362,21 @@ export async function completeTask(
 
   await updateCampaignTaskStatus(supabase, taskId, user.id, status)
 
-  upsertIntelligenceContext(supabase, user.id, taskTitle, status).catch(() => {
+  const { data: taskRow } = await supabase
+    .from('campaign_tasks')
+    .select('created_at, deliverable_note')
+    .eq('id', taskId)
+    .eq('user_id', user.id)
+    .single()
+
+  upsertIntelligenceContext(
+    supabase,
+    user.id,
+    taskTitle,
+    status,
+    taskRow?.created_at ?? null,
+    !!(taskRow?.deliverable_note && taskRow.deliverable_note.trim().length > 0),
+  ).catch(() => {
     // Silently fail — intelligence is non-critical
   })
 

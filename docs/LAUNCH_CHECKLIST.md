@@ -408,6 +408,7 @@ Drawer currently has no awareness of which task the user is looking at.
 
 ## NICE TO HAVE (post first 10 users)
 
+- LONGITUDINAL INTELLIGENCE BUILDOUT — execution quality signals (deliverable rate, time-to-completion), campaign outcome tracking, cross-campaign pattern synthesis, predictive task generation. Full architecture in DECISIONS_LOG.md 2026-03-19. Requires real user data — build after first paying cohort.
 - ENVIRONMENT / MOTION SYSTEM PASS — full platform motion audit using GSAP + Framer to their potential: mousemove card tilt, depth shadows, ambient idle motion, fog-lift on focus. Decisions logged in DECISIONS_LOG.md 2026-03-19.
 - CURRENT MISSION subtitle truncation — long `genre_sound` values overflow
 - Error states — no user-facing errors if generation fails

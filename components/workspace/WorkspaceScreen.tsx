@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { gsap } from 'gsap'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { askBlackbox, generateCampaignTasks, generateAssets, generateStrategy, completeTask, generateTaskBrief, saveTaskDeliverable } from '@/app/campaign/[id]/actions'
+import { askBlackbox, generateCampaignTasks, generateAssets, generateStrategy, completeTask, generateTaskBrief } from '@/app/campaign/[id]/actions'
 import type {
   WorkspaceMessage,
   MissionCardData,
@@ -1010,8 +1010,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
   const [taskBriefs, setTaskBriefs] = useState<Record<string, string>>({})
   const [loadingBriefId, setLoadingBriefId] = useState<string | null>(null)
-  const [pendingDeliverableTaskId, setPendingDeliverableTaskId] = useState<string | null>(null)
-  const [deliverableInput, setDeliverableInput] = useState('')
   const [taskQueueOpen, setTaskQueueOpen] = useState(false)
   const [taskQueueTab, setTaskQueueTab] = useState<'upcoming' | 'history'>('upcoming')
   const threadRef = useRef<HTMLDivElement>(null)
@@ -1116,9 +1114,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
 
     try {
       await completeTask(nextTaskId, nextTaskTitle, status, campaignId)
-      if (status === 'done') {
-        setPendingDeliverableTaskId(nextTaskId)
-      }
       router.refresh()
     } catch {
       setOptimisticTitle(null)
@@ -1132,22 +1127,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
     setOptimisticMilestone(undefined)
     setOptimisticCompleted(null)
   }, [nextTaskId])
-
-  async function handleSaveDeliverable() {
-    if (!pendingDeliverableTaskId || !deliverableInput.trim()) {
-      setPendingDeliverableTaskId(null)
-      setDeliverableInput('')
-      return
-    }
-    try {
-      await saveTaskDeliverable(pendingDeliverableTaskId, deliverableInput.trim())
-    } catch {
-      // silent — deliverable is optional, don't block the user
-    } finally {
-      setPendingDeliverableTaskId(null)
-      setDeliverableInput('')
-    }
-  }
 
   async function handleTaskExpand(taskId: string) {
     if (expandedTaskId === taskId) { setExpandedTaskId(null); return }
@@ -1251,49 +1230,6 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
                     disabled={false}
                   />
                 )}
-                <AnimatePresence>
-                  {pendingDeliverableTaskId && (
-                    <motion.div
-                      className="max-w-[600px] mx-auto mt-2 px-1"
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                    >
-                      <div
-                        className="w-full px-4 py-3 flex items-center gap-2"
-                        style={{
-                          background: '#111113',
-                          border: '1px solid rgba(255,255,255,0.06)',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <input
-                          type="text"
-                          value={deliverableInput}
-                          onChange={(e) => setDeliverableInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveDeliverable()
-                            if (e.key === 'Escape') {
-                              setPendingDeliverableTaskId(null)
-                              setDeliverableInput('')
-                            }
-                          }}
-                          placeholder="Add a link or note (optional)"
-                          autoFocus
-                          className="flex-1 min-w-0 bg-transparent outline-none font-mono text-[12px] text-zinc-300 placeholder:text-zinc-700"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSaveDeliverable}
-                          className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
-                        >
-                          {deliverableInput.trim() ? 'Save' : 'Skip'}
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
               <motion.div
                 className="w-full"

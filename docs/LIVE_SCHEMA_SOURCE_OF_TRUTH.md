@@ -98,6 +98,7 @@ When there is any conflict between docs, prompts, code, or assumptions, this fil
 - completion_rate
 - skip_patterns
 - preferred_task_types
+- execution_signals  (jsonb — Layer 2 behavioral data: time_to_complete per type, deliverable_rate, stall_patterns)
 - stream_patterns
 - engagement_patterns
 - discovery_paths
