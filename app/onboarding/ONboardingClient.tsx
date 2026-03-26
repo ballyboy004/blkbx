@@ -147,22 +147,16 @@ const PRODUCER_GOALS_OPTIONS: { value: string; label: string }[] = [
 ];
 
 const CATALOG_OPTIONS: { value: string; label: string }[] = [
-  { value: "ready", label: "i have beats ready to send out right now" },
+  { value: "ready", label: "i have tracks ready to send to artists now" },
   { value: "building", label: "i'm still building / refining my sound" },
-  {
-    value: "has_placements",
-    label: "i have some placements already, want more",
-  },
-  {
-    value: "large_catalog",
-    label: "i have a lot of catalog, just need strategy",
-  },
+  { value: "has_placements", label: "i have placements already, want more" },
+  { value: "large_catalog", label: "i have a large catalog, just need strategy" },
   { value: "other", label: "other..." },
 ];
 
 const BLOCKER_OPTIONS: { value: string; label: string }[] = [
   { value: "reach", label: "i don't know how to reach the right people" },
-  { value: "catalog_not_ready", label: "my catalog isn't ready yet" },
+  { value: "not_ready", label: "my music isn't ready yet" },
   { value: "time", label: "i don't have the time to be consistent" },
   { value: "unclear", label: "i don't know what's actually working" },
   { value: "no_presence", label: "i have no online presence / brand yet" },
@@ -874,7 +868,7 @@ function PanelContent({
   if (panelId === "catalog") {
     return (
       <StepShell
-        title="where's your catalog at?"
+        title="where's your production at?"
         description="be honest about where things actually stand."
       >
         <div className="space-y-4">
@@ -906,7 +900,7 @@ function PanelContent({
   if (panelId === "blocker") {
     return (
       <StepShell
-        title="what's your biggest blocker?"
+        title="what's holding you back right now?"
         description="the thing that's actually in the way right now."
       >
         <div className="space-y-4">

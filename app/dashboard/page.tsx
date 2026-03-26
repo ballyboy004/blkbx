@@ -20,7 +20,14 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   const activeCampaign = await getActiveCampaign(supabase, user.id)
-  if (!activeCampaign) redirect('/onboarding')
+  if (!activeCampaign) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single()
+    redirect(profile?.onboarding_completed ? '/campaign/new' : '/onboarding')
+  }
 
   const campaignId = activeCampaign.id
   const campaign = activeCampaign

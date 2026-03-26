@@ -93,6 +93,7 @@ export async function insertSingleCampaignTask(
     phase: CampaignTaskPhase
     order_index: number
     parent_id: string | null
+    due_date?: string | null
   }
 ): Promise<CampaignTask> {
   const { data, error } = await supabase
@@ -105,6 +106,7 @@ export async function insertSingleCampaignTask(
       phase: task.phase,
       order_index: task.order_index,
       parent_id: task.parent_id ?? null,
+      due_date: task.due_date ?? null,
       status: 'pending',
     })
     .select()

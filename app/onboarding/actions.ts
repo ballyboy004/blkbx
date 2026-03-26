@@ -11,13 +11,19 @@ export async function createCampaignFromProfile(): Promise<{ id: string }> {
   // Read profile to build a smarter campaign title
   const { data: profile } = await supabase
     .from('profiles')
-    .select('genre_sound, context')
+    .select('genre_sound, context, role, campaign_goals')
     .eq('id', user.id)
     .maybeSingle()
 
+  const isProducer = profile?.role === 'producer'
+
   // Build title from what we know about the artist
   let title = 'New Campaign'
-  if (profile?.genre_sound) {
+  if (isProducer) {
+    const goals = Array.isArray(profile?.campaign_goals) ? profile.campaign_goals : []
+    const focus = goals[0] ?? profile?.genre_sound ?? null
+    title = focus ? `${focus} — placement push` : 'placement push'
+  } else if (profile?.genre_sound) {
     title = `${profile.genre_sound} — new release`
   } else if (profile?.context) {
     const snippet = profile.context.slice(0, 40).trim()

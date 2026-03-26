@@ -95,13 +95,18 @@ export async function generateCampaignTasks(campaignId: string): Promise<Campaig
     throw new Error('Campaign not found')
   }
 
-  const profile = await getProfileByUserId(user.id)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('artist_name, context, genre_sound, career_stage, constraints, role, campaign_goals, readiness_checklist, strengths, weaknesses, artist_archetype, visibility_style, release_philosophy, audience_relationship, reference_artists, primary_blocker, project_status')
+    .eq('id', user.id)
+    .maybeSingle()
+
   if (!profile) {
     throw new Error('Profile not found')
   }
 
-  const goals = Array.isArray(profile.campaign_goals) ? profile.campaign_goals : null
-  const readinessChecklist = Array.isArray(profile.readiness_checklist) ? profile.readiness_checklist : []
+  const goals = Array.isArray((profile as any).campaign_goals) ? (profile as any).campaign_goals : null
+  const readinessChecklist = Array.isArray((profile as any).readiness_checklist) ? (profile as any).readiness_checklist : []
 
   // Fetch behavioral context
   const { data: intelligenceCtx } = await supabase
@@ -114,21 +119,35 @@ export async function generateCampaignTasks(campaignId: string): Promise<Campaig
   const executionSignals = (intelligenceCtx?.execution_signals as CampaignTaskGeneratorInput['executionSignals']) ?? null
 
   const input: CampaignTaskGeneratorInput = {
-    artistName: (profile as typeof profile & { artist_name?: string }).artist_name ?? profile.context ?? 'Independent artist',
-    artistContext: profile.context ?? '',
-    genreSound: profile.genre_sound ?? '',
-    careerStage: profile.career_stage ?? '',
-    constraints: profile.constraints ?? '',
+    artistName: (profile as any).artist_name ?? (profile as any).context ?? 'Independent artist',
+    artistContext: (profile as any).context ?? '',
+    genreSound: (profile as any).genre_sound ?? '',
+    careerStage: (profile as any).career_stage ?? '',
+    constraints: (profile as any).constraints ?? '',
     goals,
     readinessChecklist,
     campaignTitle: campaign.title,
     releaseType: campaign.release_type ?? null,
     releaseDate: campaign.release_date ?? null,
     skipPatterns,
+    role: (profile as any).role ?? null,
     executionSignals,
+    strengths: (profile as any).strengths ?? null,
+    weaknesses: (profile as any).weaknesses ?? null,
+    artistArchetype: (profile as any).artist_archetype ?? null,
+    visibilityStyle: (profile as any).visibility_style ?? null,
+    releasePhilosophy: (profile as any).release_philosophy ?? null,
+    audienceRelationship: (profile as any).audience_relationship ?? null,
+    referenceArtists: (profile as any).reference_artists ?? null,
+    primaryBlocker: (profile as any).primary_blocker ?? null,
+    projectStatus: (profile as any).project_status ?? null,
   }
 
   const milestones: GeneratedMilestone[] = await generateTasksContent(input)
+
+  const baseDate = campaign.release_date
+    ? new Date(campaign.release_date)
+    : new Date()
 
   const insertedTasks: CampaignTask[] = []
 
@@ -144,12 +163,18 @@ export async function generateCampaignTasks(campaignId: string): Promise<Campaig
     insertedTasks.push(milestoneRow)
 
     for (const sub of milestone.sub_tasks) {
+      const dueDateOffset = sub.due_date_offset ?? null
+      const dueDate = dueDateOffset !== null
+        ? new Date(baseDate.getTime() + dueDateOffset * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        : null
+
       const subTaskRow = await insertSingleCampaignTask(supabase, user.id, campaignId, {
         title: sub.title,
         description: sub.description,
         phase: milestone.phase,
         order_index: sub.order_index,
         parent_id: milestoneRow.id,
+        due_date: dueDate,
       })
 
       insertedTasks.push(subTaskRow)

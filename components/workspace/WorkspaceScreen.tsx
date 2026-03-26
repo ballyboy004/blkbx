@@ -88,6 +88,8 @@ function MissionCard({
   guideContent,
   guideLoading,
   onGuideRequest,
+  onGenerate,
+  generating,
 }: {
   mission: MissionCardData
   overrideText?: string | null
@@ -98,6 +100,8 @@ function MissionCard({
   guideContent: string | null
   guideLoading: boolean
   onGuideRequest: () => void
+  onGenerate?: () => void
+  generating?: boolean
 }) {
   const [view, setView] = useState<'mission' | 'guide'>('mission')
   const titleRef = useRef<HTMLDivElement>(null)
@@ -181,6 +185,20 @@ function MissionCard({
   }, [view])
 
   useEffect(() => {
+    if (view !== 'guide') return
+    if (!containerRef.current || !guideRef.current) return
+    requestAnimationFrame(() => {
+      if (!containerRef.current || !guideRef.current) return
+      const newHeight = guideRef.current.scrollHeight
+      gsap.to(containerRef.current, {
+        height: newHeight,
+        duration: 0.2,
+        ease: 'power2.out',
+      })
+    })
+  }, [guideContent, view])
+
+  useEffect(() => {
     setView('mission')
   }, [directiveText])
 
@@ -197,7 +215,7 @@ function MissionCard({
         }}
         initial={false}
       >
-        <div ref={containerRef} style={{ position: 'relative', overflow: 'hidden' }}>
+        <div ref={containerRef} style={{ position: 'relative' }}>
           {/* Mission view */}
           <div
             ref={missionRef}
@@ -254,6 +272,27 @@ function MissionCard({
               >
                 <DirectiveText text={directiveText} />
               </div>
+              {!mission.hasTasks && onGenerate && (
+                <div style={{ marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    onClick={onGenerate}
+                    disabled={generating}
+                    className="font-mono text-[10px] uppercase tracking-[0.25em] disabled:opacity-40"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '4px',
+                      color: 'rgba(255,255,255,0.7)',
+                      padding: '10px 20px',
+                      cursor: generating ? 'default' : 'pointer',
+                      width: '100%',
+                    }}
+                  >
+                    {generating ? 'Building plan...' : 'Build campaign plan'}
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex items-center gap-4">
@@ -1012,6 +1051,7 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
   const [loadingBriefId, setLoadingBriefId] = useState<string | null>(null)
   const [taskQueueOpen, setTaskQueueOpen] = useState(false)
   const [taskQueueTab, setTaskQueueTab] = useState<'upcoming' | 'history'>('upcoming')
+  const [generatingPlan, setGeneratingPlan] = useState(false)
   const threadRef = useRef<HTMLDivElement>(null)
 
   const displayedTaskId = nextTaskId
@@ -1041,10 +1081,21 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
     }
   }
 
+  async function handleGenerate() {
+    setGeneratingPlan(true)
+    try {
+      await generateCampaignTasks(campaignId)
+      router.refresh()
+    } catch {
+      // silent
+    } finally {
+      setGeneratingPlan(false)
+    }
+  }
+
   async function handleChipAction(chip: WorkspaceChip) {
     if (loading) return
     if (chip.id === 'generate') {
-      setMinimized(false)
       setLoading(true)
       try {
         await generateCampaignTasks(campaignId)
@@ -1126,6 +1177,19 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
     setOptimisticTitle(null)
     setOptimisticMilestone(undefined)
     setOptimisticCompleted(null)
+  }, [nextTaskId])
+
+  useEffect(() => {
+    if (!nextTaskId) return
+    if (taskBriefs[nextTaskId]) return
+    const task = allTasks.find(t => t.id === nextTaskId)
+    if (task?.aiContext) {
+      setTaskBriefs(prev => ({ ...prev, [nextTaskId]: task.aiContext! }))
+      return
+    }
+    generateTaskBrief(nextTaskId, campaignId)
+      .then(brief => setTaskBriefs(prev => ({ ...prev, [nextTaskId]: brief })))
+      .catch(() => {})
   }, [nextTaskId])
 
   async function handleTaskExpand(taskId: string) {
@@ -1222,6 +1286,8 @@ export function WorkspaceScreen({ campaignId, mission, chips, workItems, nextTas
                       .catch(() => setTaskBriefs(prev => ({ ...prev, [nextTaskId]: 'Could not load guide.' })))
                       .finally(() => setLoadingBriefId(null))
                   }}
+                  onGenerate={!mission.hasTasks ? handleGenerate : undefined}
+                  generating={generatingPlan}
                 />
                 {displayedTaskId && !mission.isComplete && (
                   <TaskActions

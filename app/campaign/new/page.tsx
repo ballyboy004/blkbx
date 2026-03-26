@@ -1,4 +1,5 @@
 import { getAuthedUserOrRedirect } from '@/lib/profile/profile'
+import { createClient } from '@/lib/supabase/server'
 import { Logo } from '@/components/ui/Logo'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
 import { components, typography } from '@/lib/design-system'
@@ -6,6 +7,15 @@ import { components, typography } from '@/lib/design-system'
 export default async function CampaignNewPage() {
   const { user } = await getAuthedUserOrRedirect('/')
   if (!user) return null
+
+  const supabase = await createClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const role = profile?.role ?? null
 
   return (
     <div
@@ -49,8 +59,8 @@ export default async function CampaignNewPage() {
             className="p-6 sm:p-8 rounded-lg"
             style={components.card.elevated}
           >
-            <h1 className={`${typography.cardHeader} mb-6`}>Create campaign</h1>
-            <CampaignForm />
+            <h1 className={`${typography.cardHeader} mb-6`}>{role === 'producer' ? 'New placement campaign' : 'Create campaign'}</h1>
+            <CampaignForm role={role} />
           </div>
         </div>
       </div>

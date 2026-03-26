@@ -106,33 +106,21 @@ export function resolveWorkspaceChips(
 ): WorkspaceChip[] {
   const chips: WorkspaceChip[] = []
 
-  chips.push({
-    id: 'explain',
-    label: 'Explain this move',
-    prompt: 'Why is this the right move right now? Be brief and direct.',
-  })
-
   if (campaignState.hasTasks) {
+    chips.push({
+      id: 'explain',
+      label: 'Explain this move',
+      prompt: 'Why is this the right move right now? Be brief and direct.',
+    })
     chips.push({
       id: 'rollout',
       label: 'Show rollout plan',
       prompt: 'Show me the rollout sequence. Phases only, one line each.',
     })
-  }
-
-  if (campaignState.hasTasks) {
     chips.push({
       id: 'map',
       label: 'Map campaign',
       prompt: 'Show me the full campaign task map. Group by phase.',
-    })
-  }
-
-  if (!campaignState.hasTasks) {
-    chips.push({
-      id: 'generate',
-      label: 'Build campaign plan',
-      prompt: 'What should I do to get a campaign plan built for this release?',
     })
   }
 

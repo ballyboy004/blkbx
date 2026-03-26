@@ -13,7 +13,8 @@ const RELEASE_TYPES = [
   { value: 'Mixtape', label: 'Mixtape' },
 ] as const
 
-export function CampaignForm() {
+export function CampaignForm({ role }: { role?: string | null }) {
+  const isProducer = role === 'producer'
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [releaseType, setReleaseType] = useState('')
@@ -52,7 +53,7 @@ export function CampaignForm() {
 
       <div className="space-y-2">
         <label htmlFor="title" className={typography.label}>
-          Title
+          {isProducer ? 'Campaign focus' : 'Title'}
         </label>
         <input
           id="title"
@@ -60,32 +61,34 @@ export function CampaignForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          placeholder="Campaign name"
+          placeholder={isProducer ? 'e.g. trap beats, R&B placements' : 'Campaign name'}
           className={inputClass}
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="release_type" className={typography.label}>
-          Release type
-        </label>
-        <select
-          id="release_type"
-          value={releaseType}
-          onChange={(e) => setReleaseType(e.target.value)}
-          className={`${inputClass} w-full cursor-pointer`}
-        >
-          {RELEASE_TYPES.map(({ value, label }) => (
-            <option key={value || 'empty'} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!isProducer && (
+        <div className="space-y-2">
+          <label htmlFor="release_type" className={typography.label}>
+            Release type
+          </label>
+          <select
+            id="release_type"
+            value={releaseType}
+            onChange={(e) => setReleaseType(e.target.value)}
+            className={`${inputClass} w-full cursor-pointer`}
+          >
+            {RELEASE_TYPES.map(({ value, label }) => (
+              <option key={value || 'empty'} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <label htmlFor="target_release_date" className={typography.label}>
-          Target release date
+          {isProducer ? 'Target timeframe (optional)' : 'Target release date'}
         </label>
         <div className="flex items-center gap-2">
           <input
@@ -114,7 +117,7 @@ export function CampaignForm() {
         disabled={isSubmitting || !title.trim()}
         className={buttonClass.primary}
       >
-        {isSubmitting ? 'Creating…' : 'Create campaign'}
+        {isSubmitting ? 'Creating…' : isProducer ? 'Start placement campaign' : 'Create campaign'}
       </button>
     </form>
   )

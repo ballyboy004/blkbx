@@ -5,6 +5,7 @@ type SubTask = {
   title: string
   description: string
   order_index: number
+  due_date_offset?: number
 }
 
 type Milestone = {
@@ -43,11 +44,21 @@ export type CampaignTaskGeneratorInput = {
   releaseType: string | null
   releaseDate: string | null
   skipPatterns?: Record<string, number> | null
+  role?: string | null
   executionSignals?: {
     time_to_complete_by_type?: Record<string, number[]>
     deliverable_rate?: number
     stall_patterns?: Record<string, number>
   } | null
+  strengths?: string | null
+  weaknesses?: string | null
+  primaryBlocker?: string | null
+  projectStatus?: string | null
+  artistArchetype?: string | null
+  visibilityStyle?: string | null
+  releasePhilosophy?: string | null
+  audienceRelationship?: string | null
+  referenceArtists?: string | null
 }
 
 const SYSTEM_PROMPT = `You are a music release campaign strategist for independent artists.
@@ -70,6 +81,19 @@ TIMING RULES — tasks must reflect real campaign timing:
 - A motivated artist should be able to complete all preparation tasks in 1-2 focused work sessions
 - Launch tasks should be distributed across days, not all on one day
 - Post-release tasks should maintain momentum over 2 weeks, not front-load everything
+
+DUE DATE RULES:
+- Every sub-task must include a "due_date_offset" field — an integer representing days relative to release date
+- Negative numbers = days BEFORE release (e.g. -21 = 3 weeks before release)
+- Zero = release day
+- Positive numbers = days AFTER release (e.g. 7 = one week after release)
+- Preparation tasks: offsets between -28 and -8
+- Launch tasks: offsets between -7 and 0
+- Post-release tasks: offsets between 1 and 21
+- Distribute tasks realistically — not all on the same day
+- Space preparation tasks at least 2-3 days apart
+- Space launch tasks across the 7-day window
+- Space post-release tasks across 2 weeks
 
 QUALITY RULES:
 - Every task must be a real-world action: posting, emailing, submitting, calling, DMing, recording
@@ -103,8 +127,85 @@ Respond ONLY with valid JSON matching this exact structure:
           "phase": "preparation",
           "order_index": 0,
           "sub_tasks": [
-            { "title": "...", "description": "...", "order_index": 0 },
-            { "title": "...", "description": "...", "order_index": 1 }
+            { "title": "...", "description": "...", "order_index": 0, "due_date_offset": -21 },
+            { "title": "...", "description": "...", "order_index": 1, "due_date_offset": -14 }
+          ]
+        }
+      ]
+    },
+    { "phase": "launch", "milestones": [...] },
+    { "phase": "post_release", "milestones": [...] }
+  ]
+}
+No markdown. No preamble. Valid JSON only.`
+
+const PRODUCER_SYSTEM_PROMPT = `You are a music industry strategist who has worked closely with independent producers grinding for placements. You understand how placements actually happen — not through formal channels, but through relationships, consistency, and getting your sound in front of the right people at the right time.
+
+Generate a lean, high-impact placement and brand campaign for this producer.
+
+HOW PLACEMENTS ACTUALLY HAPPEN — understand this before generating tasks:
+1. Find the artists whose sound fits your style
+2. Study who's already producing for them — those producers are your benchmark and a potential connection
+3. Build relationships with other producers in your target artists' camps — send loops, collab, get in the room
+4. Send beats directly to artists — personalized DMs with a free download, not a sales pitch
+5. Post beat videos on Reels, TikTok, and Shorts consistently — inbound discovery is real
+6. Build a YouTube type beat catalog so artists find you through search
+7. Send loops and samples to artists and producers, not just full beats — loops get you in the door faster
+8. Network with other producers for co-production and referrals
+
+WHAT GOOD PRODUCER TASKS ACTUALLY LOOK LIKE:
+- "Find 10 artists in [genre] whose sound matches your production style — check their Spotify credits for who's producing for them"
+- "Research the producers already in [target artist]'s camp — follow them, study their sound, find a connection point"
+- "DM 10 artists with a personalized message referencing their specific sound and a free beat download link"
+- "Post a beat-making Reel showing your process for [specific sound/technique] — no talking, just the process"
+- "Upload a '[genre] type beat' to YouTube with proper SEO: tempo, key, mood in the title and description"
+- "Send a loop pack (4-6 loops) to 5 producers you've identified in your target artists' camps"
+- "DM a producer whose work you respect — comment on something specific about their sound before pitching anything"
+- "Post a 'I made this beat in 20 minutes' TikTok using a trending sound as the base"
+- "Upload 8 beats to BeatStars with proper tags: artist names, tempo, key, mood — artists search this way"
+- "Submit 3 beats to SubmitHub targeting curators and artists in your genre"
+- "Follow up with any artist who listened to your beat but didn't respond — one message, no desperation"
+
+HARD LIMITS:
+- Maximum 20 sub-tasks total. Aim for 15-18.
+- Maximum 3 milestones per phase
+- Maximum 3 sub-tasks per milestone
+- Zero duplicates — every task must be meaningfully different
+- Never generate corporate-sounding tasks like "establish brand guidelines" or "develop outreach strategy"
+- Never generate tasks that are just thinking or planning — every task is a real action in the world
+
+PHASE DEFINITIONS:
+- preparation: Get your infrastructure ready — catalog uploaded, target list built, content shot (first 1-2 weeks)
+- launch: Active outreach and posting — DMing artists, sending loops to producers, posting beat videos (weeks 2-4)
+- post_release: Follow-up, relationship deepening, and momentum — not starting over, building on what you started (weeks 4-6)
+
+DUE DATE RULES:
+- Every sub-task must include a "due_date_offset" field — days from campaign start date
+- Preparation: offsets 0 to 7
+- Launch: offsets 7 to 21
+- Post-release: offsets 21 to 42
+- Space tasks at least 1-2 days apart within the same phase
+- Don't pile tasks on the same day
+
+QUALITY CHECK before finalizing:
+1. Does each task sound like something a real producer would actually do? If not, rewrite it.
+2. Any two tasks accomplish the same thing? Drop one.
+3. Is the list heavy on outreach, content, and relationship-building — not admin? Good.
+4. Are tasks specific to this producer's sound and genre? If they could apply to any producer, make them specific.
+
+Respond ONLY with valid JSON matching this exact structure:
+{
+  "phases": [
+    {
+      "phase": "preparation",
+      "milestones": [
+        {
+          "title": "...",
+          "description": "one sentence — what this milestone achieves",
+          "phase": "preparation",
+          "order_index": 0,
+          "sub_tasks": [
+            { "title": "...", "description": "...", "order_index": 0, "due_date_offset": 1 }
           ]
         }
       ]
@@ -124,6 +225,7 @@ export type GeneratedMilestone = {
     title: string
     description: string
     order_index: number
+    due_date_offset?: number | null
   }>
 }
 
@@ -185,10 +287,36 @@ If you must include them, note them as optional.`
     return lines.join('\n\n')
   })() : ''
 
-  const userPrompt = `ARTIST:
+  const isProducer = input.role === 'producer'
+  const systemPrompt = isProducer ? PRODUCER_SYSTEM_PROMPT : SYSTEM_PROMPT
+
+  const userPrompt = isProducer
+    ? `PRODUCER CONTEXT:
+- Name: ${artistName}
+- Genre/sound speciality: ${input.genreSound || 'not provided'}
+- Goals: ${goalsLine}
+- Current status: ${input.projectStatus || 'not specified'}
+- Strengths: ${input.strengths || 'not specified'}
+- Weaknesses / gaps: ${input.weaknesses || 'not specified'}
+- Biggest blocker: ${input.primaryBlocker || 'not specified'}
+- Constraints: ${input.constraints || 'none specified'}
+- Campaign focus: ${input.campaignTitle}
+${skipBlock ? `\nBEHAVIORAL CONTEXT:\n${skipBlock}` : ''}
+${executionBlock ? `\n${executionBlock}` : ''}
+
+Generate the placement campaign plan.`
+    : `ARTIST:
 - Name: ${artistName}
 - Genre/sound: ${input.genreSound || 'not provided'}
 - Career stage: ${input.careerStage || 'not provided'}
+- Artist archetype: ${input.artistArchetype || 'not specified'}
+- Visibility style: ${input.visibilityStyle || 'not specified'}
+- Release philosophy: ${input.releasePhilosophy || 'not specified'}
+- Audience relationship: ${input.audienceRelationship || 'not specified'}
+- Reference artists/career models: ${input.referenceArtists || 'not specified'}
+- Strengths: ${input.strengths || 'not specified'}
+- Weaknesses / gaps: ${input.weaknesses || 'not specified'}
+- Biggest blocker: ${input.primaryBlocker || 'not specified'}
 - Constraints: ${input.constraints || 'none specified'}
 - Goals: ${goalsLine}
 
@@ -214,7 +342,7 @@ Generate the campaign execution plan.`
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
   })
 
@@ -235,6 +363,7 @@ Generate the campaign execution plan.`
         title: st.title,
         description: st.description,
         order_index: st.order_index,
+        due_date_offset: st.due_date_offset ?? null,
       }))
 
       milestones.push({
