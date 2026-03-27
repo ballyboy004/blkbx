@@ -199,6 +199,19 @@ function MissionCard({
   }, [guideContent, view])
 
   useEffect(() => {
+    if (view !== 'mission') return
+    if (!containerRef.current || !missionRef.current) return
+    requestAnimationFrame(() => {
+      if (!containerRef.current || !missionRef.current) return
+      gsap.to(containerRef.current, {
+        height: missionRef.current.scrollHeight,
+        duration: 0.25,
+        ease: 'power2.out',
+      })
+    })
+  }, [directiveText, view])
+
+  useEffect(() => {
     setView('mission')
   }, [directiveText])
 
